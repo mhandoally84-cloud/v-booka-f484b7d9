@@ -24,7 +24,7 @@ function BookingsList() {
     queryFn: async () => {
       let query = supabase
         .from("bookings")
-        .select("id, course_code, exam_title, department, exam_date, status, expected_students, venues(name, building), time_slots(label), profiles!bookings_user_id_fkey(full_name)")
+        .select("id, course_code, exam_title, department, exam_date, status, expected_students, venues(name, building), time_slots(label)")
         .order("exam_date", { ascending: false });
       if (!isAdmin) query = query.eq("user_id", user!.id);
       if (tab !== "all") query = query.eq("status", tab as any);
