@@ -66,9 +66,7 @@ function BookingsList() {
                         <div className="text-sm text-muted-foreground">
                           {b.venues?.name} · {format(new Date(b.exam_date), "d MMM yyyy")} · {b.time_slots?.label} · {b.expected_students} students
                         </div>
-                        {isAdmin && b.profiles?.full_name && (
-                          <div className="text-xs text-muted-foreground mt-0.5">Requested by {b.profiles.full_name} · {b.department}</div>
-                        )}
+                        {isAdmin && <div className="text-xs text-muted-foreground mt-0.5">{b.department}</div>}
                       </div>
                       <StatusBadge status={b.status} />
                     </CardContent>
