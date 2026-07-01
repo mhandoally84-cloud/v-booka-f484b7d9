@@ -14,16 +14,227 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          course_code: string
+          created_at: string
+          department: string
+          exam_date: string
+          exam_title: string
+          expected_students: number
+          id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewer_comment: string | null
+          reviewer_id: string | null
+          special_requirements: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+          time_slot_id: string
+          updated_at: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          course_code: string
+          created_at?: string
+          department: string
+          exam_date: string
+          exam_title: string
+          expected_students: number
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewer_comment?: string | null
+          reviewer_id?: string | null
+          special_requirements?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          time_slot_id: string
+          updated_at?: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          course_code?: string
+          created_at?: string
+          department?: string
+          exam_date?: string
+          exam_title?: string
+          expected_students?: number
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewer_comment?: string | null
+          reviewer_id?: string | null
+          special_requirements?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          time_slot_id?: string
+          updated_at?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_time_slot_id_fkey"
+            columns: ["time_slot_id"]
+            isOneToOne: false
+            referencedRelation: "time_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          department: string | null
+          full_name: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          full_name?: string
+          id: string
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          full_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      time_slots: {
+        Row: {
+          end_time: string
+          id: string
+          label: string
+          sort_order: number
+          start_time: string
+        }
+        Insert: {
+          end_time: string
+          id?: string
+          label: string
+          sort_order?: number
+          start_time: string
+        }
+        Update: {
+          end_time?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          start_time?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      venues: {
+        Row: {
+          building: string
+          capacity: number
+          created_at: string
+          facilities: string[]
+          id: string
+          is_active: boolean
+          name: string
+          photo_url: string | null
+          type: Database["public"]["Enums"]["venue_type"]
+          under_maintenance: boolean
+        }
+        Insert: {
+          building: string
+          capacity: number
+          created_at?: string
+          facilities?: string[]
+          id?: string
+          is_active?: boolean
+          name: string
+          photo_url?: string | null
+          type?: Database["public"]["Enums"]["venue_type"]
+          under_maintenance?: boolean
+        }
+        Update: {
+          building?: string
+          capacity?: number
+          created_at?: string
+          facilities?: string[]
+          id?: string
+          is_active?: boolean
+          name?: string
+          photo_url?: string | null
+          type?: Database["public"]["Enums"]["venue_type"]
+          under_maintenance?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "lecturer" | "dept_head"
+      booking_status: "pending" | "approved" | "rejected" | "cancelled"
+      venue_type: "lecture_hall" | "computer_lab" | "exam_hall"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +361,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "lecturer", "dept_head"],
+      booking_status: ["pending", "approved", "rejected", "cancelled"],
+      venue_type: ["lecture_hall", "computer_lab", "exam_hall"],
+    },
   },
 } as const
