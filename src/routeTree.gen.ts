@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings/index'
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings/new'
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings/$id'
@@ -42,6 +43,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBookingsIndexRoute =
   AuthenticatedBookingsIndexRouteImport.update({
     id: '/bookings/',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/find-exam': typeof FindExamRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/find-exam': typeof FindExamRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/find-exam': typeof FindExamRoute
+  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/find-exam'
+    | '/calendar'
     | '/dashboard'
     | '/bookings/$id'
     | '/bookings/new'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/find-exam'
+    | '/calendar'
     | '/dashboard'
     | '/bookings/$id'
     | '/bookings/new'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/find-exam'
+    | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
     | '/_authenticated/bookings/$id'
     | '/_authenticated/bookings/new'
@@ -164,6 +176,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bookings/': {
       id: '/_authenticated/bookings/'
       path: '/bookings'
@@ -189,6 +208,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedBookingsIdRoute: typeof AuthenticatedBookingsIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
@@ -196,6 +216,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedBookingsIdRoute: AuthenticatedBookingsIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,
