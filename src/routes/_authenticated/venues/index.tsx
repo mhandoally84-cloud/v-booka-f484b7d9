@@ -22,7 +22,8 @@ function VenuesList() {
   });
 
   async function toggle(id: string, field: "is_active" | "under_maintenance", value: boolean) {
-    const { error } = await supabase.from("venues").update({ [field]: value }).eq("id", id);
+    const patch: Record<string, boolean> = { [field]: value };
+    const { error } = await supabase.from("venues").update(patch as any).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Updated");
     qc.invalidateQueries({ queryKey: ["venues"] });
