@@ -27,19 +27,24 @@ function BookingDetail() {
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const { data: b, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["booking", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: booking } = await supabase
         .from("bookings")
-        .select("*, venues(name, building, capacity), time_slots(label, start_time, end_time), profiles!bookings_user_id_fkey(full_name, department)")
+        .select("*, venues(name, building, capacity), time_slots(label, start_time, end_time)")
         .eq("id", id).single();
-      return data;
+      if (!booking) return null;
+      const { data: profile } = await supabase
+        .from("profiles").select("full_name, department").eq("id", booking.user_id).maybeSingle();
+      return { ...booking, profile };
     },
   });
 
   if (isLoading) return <div className="text-center text-muted-foreground">Loading…</div>;
-  if (!b) return <div>Not found</div>;
+  if (!data) return <div>Not found</div>;
+
+  const b = data;
 
   async function updateStatus(status: "approved" | "rejected") {
     setBusy(true);
@@ -97,7 +102,7 @@ function BookingDetail() {
           <Info icon={CalendarDays} label="Date" value={format(new Date(b.exam_date), "EEEE, d MMMM yyyy")} />
           <Info icon={Clock} label="Time slot" value={`${b.time_slots?.label} (${b.time_slots?.start_time.slice(0,5)}–${b.time_slots?.end_time.slice(0,5)})`} />
           <Info icon={Users} label="Expected students" value={`${b.expected_students} (capacity ${b.venues?.capacity})`} />
-          <Info icon={GraduationCap} label="Requested by" value={b.profiles?.full_name ?? "—"} />
+          <Info icon={GraduationCap} label="Requested by" value={b.profile?.full_name ?? "—"} />
         </CardContent>
       </Card>
 
