@@ -13,6 +13,7 @@ import { Route as FindExamRouteImport } from './routes/find-exam'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedVenuesIndexRouteImport } from './routes/_authenticated/venues/index'
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/find-exam': typeof FindExamRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/venues/$id': typeof AuthenticatedVenuesIdRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/find-exam': typeof FindExamRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/venues/$id': typeof AuthenticatedVenuesIdRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/find-exam': typeof FindExamRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
   '/_authenticated/venues/$id': typeof AuthenticatedVenuesIdRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/find-exam'
     | '/calendar'
     | '/dashboard'
+    | '/reports'
     | '/bookings/$id'
     | '/bookings/new'
     | '/venues/$id'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/find-exam'
     | '/calendar'
     | '/dashboard'
+    | '/reports'
     | '/bookings/$id'
     | '/bookings/new'
     | '/venues/$id'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/find-exam'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
+    | '/_authenticated/reports'
     | '/_authenticated/bookings/$id'
     | '/_authenticated/bookings/new'
     | '/_authenticated/venues/$id'
@@ -205,6 +217,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -268,6 +287,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedBookingsIdRoute: typeof AuthenticatedBookingsIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
   AuthenticatedVenuesIdRoute: typeof AuthenticatedVenuesIdRoute
@@ -279,6 +299,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedBookingsIdRoute: AuthenticatedBookingsIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,
   AuthenticatedVenuesIdRoute: AuthenticatedVenuesIdRoute,
