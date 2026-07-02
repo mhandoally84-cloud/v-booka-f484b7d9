@@ -93,7 +93,7 @@ function BookingDetail() {
   }
 
   const canReview = isAdmin && b.status === "pending";
-  const canCancel = user?.id === b.user_id && b.status === "pending";
+  const canCancel = user?.id === b.user_id && (b.status === "pending" || b.status === "approved");
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 print:max-w-none">
