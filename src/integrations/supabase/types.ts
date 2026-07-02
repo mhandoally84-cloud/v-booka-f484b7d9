@@ -226,7 +226,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_exam_search: {
+        Row: {
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          course_code: string | null
+          department: string | null
+          exam_date: string | null
+          exam_title: string | null
+          id: string | null
+          status: Database["public"]["Enums"]["booking_status"] | null
+          time_slot_end: string | null
+          time_slot_label: string | null
+          time_slot_start: string | null
+          venue_building: string | null
+          venue_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
