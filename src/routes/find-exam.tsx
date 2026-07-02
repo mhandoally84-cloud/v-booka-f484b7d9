@@ -21,6 +21,9 @@ interface Result {
   exam_title: string;
   exam_date: string;
   department: string;
+  status: string;
+  cancellation_reason: string | null;
+  cancelled_at: string | null;
   venues: { name: string; building: string } | null;
   time_slots: { label: string; start_time: string; end_time: string } | null;
 }
