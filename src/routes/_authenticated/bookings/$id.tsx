@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { MapPin, CalendarDays, Clock, Users, GraduationCap, MessageSquare, Trash2 } from "lucide-react";
+import { MapPin, CalendarDays, Clock, Users, GraduationCap, MessageSquare, Trash2, Printer, ArrowLeft } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
   component: BookingDetail,
@@ -87,13 +88,23 @@ function BookingDetail() {
   const canCancel = user?.id === b.user_id && b.status === "pending";
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 print:max-w-none">
+      <Link to="/bookings" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground print:hidden">
+        <ArrowLeft className="h-4 w-4" /> Back to bookings
+      </Link>
       <div className="flex items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold">{b.course_code} — {b.exam_title}</h1>
           <p className="text-muted-foreground">{b.department}</p>
         </div>
-        <StatusBadge status={b.status} />
+        <div className="flex shrink-0 items-center gap-2">
+          <StatusBadge status={b.status} />
+          {b.status === "approved" && (
+            <Button size="sm" variant="outline" onClick={() => window.print()} className="print:hidden">
+              <Printer className="mr-2 h-4 w-4" /> Print
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -136,9 +147,13 @@ function BookingDetail() {
         </Card>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 print:hidden">
         {canCancel && <Button variant="outline" onClick={cancelOwn} disabled={busy}>Cancel booking</Button>}
         {isAdmin && <Button variant="ghost" onClick={del} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Delete</Button>}
+      </div>
+
+      <div className="hidden print:mt-8 print:block print:border-t print:pt-4 print:text-xs print:text-muted-foreground">
+        Mzumbe University · Exam Venue Booking · Printed {format(new Date(), "d MMM yyyy, HH:mm")}
       </div>
     </div>
   );
