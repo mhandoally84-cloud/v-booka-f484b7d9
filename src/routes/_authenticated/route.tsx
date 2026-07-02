@@ -38,6 +38,16 @@ function AppLayout() {
     refetchInterval: 60_000,
   });
 
+  const beat = useServerFn(heartbeat);
+  useEffect(() => {
+    beat().catch(() => {});
+    const id = setInterval(() => beat().catch(() => {}), 2 * 60 * 1000);
+    const onVisible = () => { if (document.visibilityState === "visible") beat().catch(() => {}); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
+  }, [beat]);
+
+
   const nav = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/bookings", label: "Bookings", icon: ClipboardList },
