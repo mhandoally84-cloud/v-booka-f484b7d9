@@ -126,6 +126,23 @@ function BookingDetail() {
         </CardContent>
       </Card>
 
+      {b.programmes && b.programmes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <GraduationCap className="h-4 w-4" /> Programmes sitting this exam
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {b.programmes.map((p: string) => (
+                <span key={p} className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">{p}</span>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {(b.special_requirements || b.notes) && (
         <Card>
           <CardHeader><CardTitle className="text-base">Additional information</CardTitle></CardHeader>

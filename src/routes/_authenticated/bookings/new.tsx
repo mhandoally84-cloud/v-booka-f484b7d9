@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Building2, Check, AlertTriangle, Lightbulb } from "lucide-react";
+import { CalendarIcon, Building2, Check, AlertTriangle, Lightbulb, X, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { addDays, format } from "date-fns";
 import { toast } from "sonner";
@@ -31,7 +31,13 @@ function NewBooking() {
   const [form, setForm] = useState({
     course_code: "", exam_title: "", department: "", special_requirements: "", notes: "",
   });
+  // Programmes sitting the exam, keyed by venue id (e.g. ["BSc Computer Science", "BBA Year 2"])
+  const [programmesByVenue, setProgrammesByVenue] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
+
+  function setVenueProgrammes(venueId: string, list: string[]) {
+    setProgrammesByVenue((p) => ({ ...p, [venueId]: list }));
+  }
 
   const { data: slots = [] } = useQuery({
     queryKey: ["time-slots"],
@@ -161,6 +167,7 @@ function NewBooking() {
         time_slot_id: slotId,
         exam_date: examDate,
         ...form,
+        programmes: programmesByVenue[v.id] ?? [],
         expected_students: seats,
         status,
         reviewer_comment,
@@ -385,6 +392,22 @@ function NewBooking() {
               <Label htmlFor="et">Exam title</Label>
               <Input id="et" value={form.exam_title} onChange={(e) => setForm({...form, exam_title: e.target.value})} placeholder="e.g. Introduction to Databases — Final Exam" required />
             </div>
+            <div className="space-y-3">
+              <div>
+                <Label>Programmes sitting the exam</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  List the programmes (e.g. <em>BSc Computer Science Y2</em>, <em>BBA Y3</em>). These are shown to students who search this course code so they know which venue to attend.
+                </p>
+              </div>
+              {selectedVenues.map((v: any) => (
+                <ProgrammesField
+                  key={v.id}
+                  venueLabel={selectedVenues.length > 1 ? `${v.name} · ${v.building}` : null}
+                  value={programmesByVenue[v.id] ?? []}
+                  onChange={(list) => setVenueProgrammes(v.id, list)}
+                />
+              ))}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="sr">Special requirements (optional)</Label>
               <Textarea id="sr" value={form.special_requirements} onChange={(e) => setForm({...form, special_requirements: e.target.value})} placeholder="e.g. Extra projector, wheelchair access" />
@@ -401,6 +424,70 @@ function NewBooking() {
             </div>
           </CardContent>
         </Card>
+      )}
+    </div>
+  );
+}
+
+function ProgrammesField({
+  venueLabel,
+  value,
+  onChange,
+}: {
+  venueLabel: string | null;
+  value: string[];
+  onChange: (list: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+
+  function add() {
+    const clean = draft.trim();
+    if (!clean) return;
+    if (value.includes(clean)) { setDraft(""); return; }
+    onChange([...value, clean]);
+    setDraft("");
+  }
+  function remove(p: string) {
+    onChange(value.filter((x) => x !== p));
+  }
+
+  return (
+    <div className="rounded-md border p-3">
+      {venueLabel && (
+        <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <Building2 className="h-3.5 w-3.5 text-primary" /> {venueLabel}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+          placeholder="Type a programme and press Enter (e.g. BSc CS Y2)"
+        />
+        <Button type="button" variant="outline" onClick={add}>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+      {value.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {value.map((p) => (
+            <span
+              key={p}
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+            >
+              {p}
+              <button
+                type="button"
+                onClick={() => remove(p)}
+                className="rounded-full p-0.5 hover:bg-primary/20"
+                aria-label={`Remove ${p}`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
       )}
     </div>
   );

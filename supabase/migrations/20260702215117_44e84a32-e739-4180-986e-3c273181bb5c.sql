@@ -1,0 +1,1 @@
+ALTER VIEW public.public_exam_search SET (security_invoker = on);

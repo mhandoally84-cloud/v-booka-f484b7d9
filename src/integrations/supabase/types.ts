@@ -83,6 +83,7 @@ export type Database = {
           expected_students: number
           id: string
           notes: string | null
+          programmes: string[]
           reviewed_at: string | null
           reviewer_comment: string | null
           reviewer_id: string | null
@@ -104,6 +105,7 @@ export type Database = {
           expected_students: number
           id?: string
           notes?: string | null
+          programmes?: string[]
           reviewed_at?: string | null
           reviewer_comment?: string | null
           reviewer_id?: string | null
@@ -125,6 +127,7 @@ export type Database = {
           expected_students?: number
           id?: string
           notes?: string | null
+          programmes?: string[]
           reviewed_at?: string | null
           reviewer_comment?: string | null
           reviewer_id?: string | null
@@ -295,6 +298,7 @@ export type Database = {
           exam_date: string | null
           exam_title: string | null
           id: string | null
+          programmes: string[] | null
           status: Database["public"]["Enums"]["booking_status"] | null
           time_slot_end: string | null
           time_slot_label: string | null

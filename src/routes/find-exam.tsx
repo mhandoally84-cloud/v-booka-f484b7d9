@@ -24,6 +24,7 @@ interface Result {
   status: string;
   cancellation_reason: string | null;
   cancelled_at: string | null;
+  programmes: string[] | null;
   venue_name: string | null;
   venue_building: string | null;
   time_slot_label: string | null;
@@ -42,7 +43,7 @@ function FindExam() {
     setLoading(true);
     const { data } = await (supabase as any)
       .from("public_exam_search")
-      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, venue_name, venue_building, time_slot_label, time_slot_start, time_slot_end")
+      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, programmes, venue_name, venue_building, time_slot_label, time_slot_start, time_slot_end")
       .ilike("course_code", `%${term.trim()}%`)
       .order("exam_date", { ascending: true });
     setResults((data as Result[] | null) ?? []);
@@ -111,6 +112,16 @@ function FindExam() {
                       <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {r.time_slot_label} ({r.time_slot_start?.slice(0,5)}–{r.time_slot_end?.slice(0,5)})</div>
 
                     </div>
+                    {!cancelled && r.programmes && r.programmes.length > 0 && (
+                      <div className="mt-4">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Programmes sitting in this venue</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {r.programmes.map((p) => (
+                            <span key={p} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{p}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     {cancelled && (
                       <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
                         <div className="font-medium text-destructive">Reason for cancellation</div>
