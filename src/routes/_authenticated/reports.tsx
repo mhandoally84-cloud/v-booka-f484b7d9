@@ -1,14 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, ScrollText } from "lucide-react";
+import { VenueHeatmap } from "@/components/VenueHeatmap";
+import { VenueUtilization } from "@/components/VenueUtilization";
 
 export const Route = createFileRoute("/_authenticated/reports")({
   component: Reports,
 });
+
 
 function Reports() {
   const { isAdmin, loading } = useAuth();
