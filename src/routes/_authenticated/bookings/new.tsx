@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -26,10 +26,10 @@ function NewBooking() {
   const [step, setStep] = useState(1);
   const [date, setDate] = useState<Date | undefined>();
   const [slotId, setSlotId] = useState<string>("");
-  const [minCapacity, setMinCapacity] = useState<number>(50);
-  const [venueId, setVenueId] = useState<string>("");
+  const [expectedStudents, setExpectedStudents] = useState<number>(50);
+  const [venueIds, setVenueIds] = useState<string[]>([]);
   const [form, setForm] = useState({
-    course_code: "", exam_title: "", department: "", expected_students: 50, special_requirements: "", notes: "",
+    course_code: "", exam_title: "", department: "", special_requirements: "", notes: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -39,11 +39,11 @@ function NewBooking() {
   });
 
   const { data: availableVenues = [] } = useQuery({
-    queryKey: ["available-venues", date?.toISOString(), slotId, minCapacity],
+    queryKey: ["available-venues-all", date?.toISOString(), slotId],
     enabled: !!date && !!slotId,
     queryFn: async () => {
       const { data: allVenues } = await supabase
-        .from("venues").select("*").eq("is_active", true).eq("under_maintenance", false).gte("capacity", minCapacity);
+        .from("venues").select("*").eq("is_active", true).eq("under_maintenance", false).order("capacity", { ascending: false });
       const { data: taken } = await supabase
         .from("bookings").select("venue_id")
         .eq("status", "approved").eq("exam_date", format(date!, "yyyy-MM-dd")).eq("time_slot_id", slotId);
@@ -52,62 +52,90 @@ function NewBooking() {
     },
   });
 
+  const selectedVenues = useMemo(
+    () => availableVenues.filter((v: any) => venueIds.includes(v.id)),
+    [availableVenues, venueIds],
+  );
+  const totalCapacity = selectedVenues.reduce((sum: number, v: any) => sum + v.capacity, 0);
+  const remaining = Math.max(0, expectedStudents - totalCapacity);
+
+  function toggleVenue(id: string) {
+    setVenueIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  }
+
   async function submit() {
-    if (!user || !date || !slotId || !venueId) return;
+    if (!user || !date || !slotId || venueIds.length === 0) return;
     setSaving(true);
     const examDate = format(date, "yyyy-MM-dd");
-
-    // Check for an existing approved booking on the same venue, date, and slot
-    const { data: conflict } = await supabase
-      .from("bookings")
-      .select("id, course_code, exam_title, profiles:user_id(full_name)")
-      .eq("status", "approved")
-      .eq("venue_id", venueId)
-      .eq("exam_date", examDate)
-      .eq("time_slot_id", slotId)
-      .maybeSingle();
-
     const slot = slots.find((s: any) => s.id === slotId);
     const slotLabel = slot ? `${slot.label} (${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)})` : "the selected slot";
 
-    let status: "approved" | "rejected" = "approved";
-    let reviewer_comment: string | null = null;
+    // Distribute expected students proportionally across selected venues by capacity
+    const totalCap = selectedVenues.reduce((s: number, v: any) => s + v.capacity, 0);
+    let remainingStudents = expectedStudents;
+    const results: { venueName: string; status: "approved" | "rejected"; error?: string }[] = [];
+    let firstId: string | null = null;
 
-    if (conflict) {
-      status = "rejected";
-      reviewer_comment = `Automatically rejected: this venue is already booked at ${slotLabel} on ${format(date, "d MMM yyyy")} for ${conflict.course_code} — ${conflict.exam_title}. Please choose another venue or time slot.`;
-    }
+    for (let i = 0; i < selectedVenues.length; i++) {
+      const v: any = selectedVenues[i];
+      const isLast = i === selectedVenues.length - 1;
+      const share = isLast
+        ? remainingStudents
+        : Math.min(v.capacity, Math.round((v.capacity / totalCap) * expectedStudents));
+      const seats = Math.max(1, Math.min(v.capacity, share));
+      remainingStudents -= seats;
 
-    const insertPayload: any = {
-      user_id: user.id,
-      venue_id: venueId,
-      time_slot_id: slotId,
-      exam_date: examDate,
-      ...form,
-      expected_students: Number(form.expected_students),
-      status,
-      reviewer_comment,
-      reviewed_at: new Date().toISOString(),
-    };
+      // Conflict check per venue
+      const { data: conflict } = await supabase
+        .from("bookings")
+        .select("id, course_code, exam_title")
+        .eq("status", "approved")
+        .eq("venue_id", v.id)
+        .eq("exam_date", examDate)
+        .eq("time_slot_id", slotId)
+        .maybeSingle();
 
-    let { data, error } = await supabase.from("bookings").insert(insertPayload).select("id").single();
+      let status: "approved" | "rejected" = "approved";
+      let reviewer_comment: string | null = null;
+      if (conflict) {
+        status = "rejected";
+        reviewer_comment = `Automatically rejected: ${v.name} is already booked at ${slotLabel} on ${format(date, "d MMM yyyy")} for ${conflict.course_code} — ${conflict.exam_title}.`;
+      }
 
-    // Race condition safeguard: unique index blocked a second approval → auto-reject
-    if (error && error.message.includes("bookings_no_double_approved")) {
-      insertPayload.status = "rejected";
-      insertPayload.reviewer_comment = `Automatically rejected: this venue was just booked by another user for ${slotLabel} on ${format(date, "d MMM yyyy")}. Please choose another venue or time slot.`;
-      ({ data, error } = await supabase.from("bookings").insert(insertPayload).select("id").single());
+      const payload: any = {
+        user_id: user.id,
+        venue_id: v.id,
+        time_slot_id: slotId,
+        exam_date: examDate,
+        ...form,
+        expected_students: seats,
+        status,
+        reviewer_comment,
+        reviewed_at: new Date().toISOString(),
+      };
+
+      let { data, error } = await supabase.from("bookings").insert(payload).select("id").single();
+      if (error && error.message.includes("bookings_no_double_approved")) {
+        payload.status = "rejected";
+        payload.reviewer_comment = `Automatically rejected: ${v.name} was just booked by another user for ${slotLabel} on ${format(date, "d MMM yyyy")}.`;
+        ({ data, error } = await supabase.from("bookings").insert(payload).select("id").single());
+      }
+
+      results.push({ venueName: v.name, status: payload.status, error: error?.message });
+      if (data && !firstId) firstId = data.id;
     }
 
     setSaving(false);
-    if (error || !data) return toast.error(error?.message ?? "Could not create booking");
+    const approved = results.filter((r) => r.status === "approved" && !r.error).length;
+    const rejected = results.filter((r) => r.status === "rejected").length;
+    const failed = results.filter((r) => r.error).length;
 
-    if (insertPayload.status === "approved") {
-      toast.success("Venue is available — booking approved automatically");
-    } else {
-      toast.error("Venue is already booked at that time — request rejected");
-    }
-    navigate({ to: "/bookings/$id", params: { id: data.id } });
+    if (approved > 0) toast.success(`${approved} venue(s) approved automatically`);
+    if (rejected > 0) toast.error(`${rejected} venue(s) rejected — already booked`);
+    if (failed > 0) toast.error(`${failed} venue(s) failed to save`);
+
+    if (firstId) navigate({ to: "/bookings/$id", params: { id: firstId } });
+    else navigate({ to: "/bookings" });
   }
 
   return (
@@ -148,50 +176,75 @@ function NewBooking() {
             </div>
             <div className="space-y-2">
               <Label>Expected number of students</Label>
-              <Input type="number" min={1} value={minCapacity} onChange={(e) => setMinCapacity(Number(e.target.value))} />
+              <Input type="number" min={1} value={expectedStudents} onChange={(e) => setExpectedStudents(Number(e.target.value))} />
             </div>
-            <Button onClick={() => { if (date && slotId && minCapacity) { setForm((f) => ({...f, expected_students: minCapacity })); setStep(2); } else toast.error("Complete all fields"); }} className="w-full">Find venues</Button>
+            <Button onClick={() => { if (date && slotId && expectedStudents) setStep(2); else toast.error("Complete all fields"); }} className="w-full">Find venues</Button>
           </CardContent>
         </Card>
       )}
 
       {step === 2 && (
         <Card>
-          <CardHeader><CardTitle>Available venues</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Available venues</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Select one or more venues to accommodate all {expectedStudents} students. Selected capacity:{" "}
+              <span className={cn("font-semibold", totalCapacity >= expectedStudents ? "text-green-600" : "text-amber-600")}>
+                {totalCapacity}
+              </span>
+              {remaining > 0 && <> — {remaining} more seat(s) needed</>}
+            </p>
+          </CardHeader>
           <CardContent>
             {availableVenues.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">
-                No venues available for this date, slot, and capacity. Try a different combination.
+                No venues available for this date and slot. Try a different combination.
               </div>
             ) : (
               <div className="space-y-2">
-                {availableVenues.map((v: any) => (
-                  <button
-                    key={v.id}
-                    onClick={() => setVenueId(v.id)}
-                    className={cn(
-                      "flex w-full items-center justify-between rounded-lg border p-4 text-left transition hover:border-primary",
-                      venueId === v.id ? "border-primary bg-primary/5" : "border-border",
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-                        <Building2 className="h-5 w-5" />
+                {availableVenues.map((v: any) => {
+                  const selected = venueIds.includes(v.id);
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => toggleVenue(v.id)}
+                      className={cn(
+                        "flex w-full items-center justify-between rounded-lg border p-4 text-left transition hover:border-primary",
+                        selected ? "border-primary bg-primary/5" : "border-border",
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-md",
+                          selected ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary",
+                        )}>
+                          {selected ? <Check className="h-5 w-5" /> : <Building2 className="h-5 w-5" />}
+                        </div>
+                        <div>
+                          <div className="font-semibold">{v.name}</div>
+                          <div className="text-sm text-muted-foreground">{v.building} · Capacity {v.capacity} · {v.type.replace("_", " ")}</div>
+                          {v.facilities?.length > 0 && <div className="text-xs text-muted-foreground mt-1">{v.facilities.join(" · ")}</div>}
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-semibold">{v.name}</div>
-                        <div className="text-sm text-muted-foreground">{v.building} · Capacity {v.capacity} · {v.type.replace("_", " ")}</div>
-                        {v.facilities?.length > 0 && <div className="text-xs text-muted-foreground mt-1">{v.facilities.join(" · ")}</div>}
-                      </div>
-                    </div>
-                    {venueId === v.id && <Check className="h-5 w-5 text-primary" />}
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             )}
             <div className="mt-4 flex gap-2">
               <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
-              <Button onClick={() => venueId ? setStep(3) : toast.error("Pick a venue")} disabled={!venueId} className="flex-1">Continue</Button>
+              <Button
+                onClick={() => {
+                  if (venueIds.length === 0) return toast.error("Pick at least one venue");
+                  if (totalCapacity < expectedStudents) return toast.error(`Selected venues fit ${totalCapacity} of ${expectedStudents} students`);
+                  setStep(3);
+                }}
+                disabled={venueIds.length === 0}
+                className="flex-1"
+              >
+                Continue ({venueIds.length} selected)
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -201,6 +254,11 @@ function NewBooking() {
         <Card>
           <CardHeader><CardTitle>Exam details</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <div className="rounded-md border bg-muted/30 p-3 text-sm">
+              <div className="font-medium mb-1">{venueIds.length} venue(s) · {totalCapacity} seats total</div>
+              <div className="text-muted-foreground">{selectedVenues.map((v: any) => v.name).join(", ")}</div>
+              <div className="text-xs text-muted-foreground mt-1">One booking will be created per venue, with students distributed by capacity.</div>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="cc">Course code</Label>
@@ -216,10 +274,6 @@ function NewBooking() {
               <Input id="et" value={form.exam_title} onChange={(e) => setForm({...form, exam_title: e.target.value})} placeholder="e.g. Introduction to Databases — Final Exam" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="es">Expected students</Label>
-              <Input id="es" type="number" min={1} value={form.expected_students} onChange={(e) => setForm({...form, expected_students: Number(e.target.value)})} required />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="sr">Special requirements (optional)</Label>
               <Textarea id="sr" value={form.special_requirements} onChange={(e) => setForm({...form, special_requirements: e.target.value})} placeholder="e.g. Extra projector, wheelchair access" />
             </div>
@@ -230,7 +284,7 @@ function NewBooking() {
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setStep(2)}>Back</Button>
               <Button onClick={submit} disabled={saving || !form.course_code || !form.exam_title || !form.department} className="flex-1">
-                {saving ? "Submitting…" : "Submit booking request"}
+                {saving ? "Submitting…" : `Submit ${venueIds.length} booking(s)`}
               </Button>
             </div>
           </CardContent>
