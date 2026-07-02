@@ -43,8 +43,10 @@ function AppLayout() {
     ...(isAdmin ? [
       { to: "/venues", label: "Venues", icon: Building2 },
       { to: "/reports", label: "Reports", icon: BarChart3 },
+      { to: "/audit", label: "Audit log", icon: ScrollText },
       { to: "/admins", label: "Admins", icon: ShieldCheck },
     ] : []),
+
     { to: "/notifications", label: "Notifications", icon: Bell, badge: unread },
   ];
 
