@@ -24,8 +24,11 @@ interface Result {
   status: string;
   cancellation_reason: string | null;
   cancelled_at: string | null;
-  venues: { name: string; building: string } | null;
-  time_slots: { label: string; start_time: string; end_time: string } | null;
+  venue_name: string | null;
+  venue_building: string | null;
+  time_slot_label: string | null;
+  time_slot_start: string | null;
+  time_slot_end: string | null;
 }
 
 function FindExam() {
@@ -37,15 +40,15 @@ function FindExam() {
   async function search(term: string) {
     if (!term.trim()) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("bookings")
-      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, venues(name, building), time_slots(label, start_time, end_time)")
-      .in("status", ["approved", "cancelled"])
+    const { data } = await (supabase as any)
+      .from("public_exam_search")
+      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, venue_name, venue_building, time_slot_label, time_slot_start, time_slot_end")
       .ilike("course_code", `%${term.trim()}%`)
       .order("exam_date", { ascending: true });
-    setResults((data as unknown as Result[]) ?? []);
+    setResults((data as Result[] | null) ?? []);
     setLoading(false);
   }
+
 
   // auto-run if q present
   useState(() => { if (q) search(q); });
