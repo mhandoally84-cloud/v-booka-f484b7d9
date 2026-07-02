@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          booking_id: string | null
+          comment: string | null
+          course_code: string | null
+          created_at: string
+          exam_date: string | null
+          exam_title: string | null
+          from_status: Database["public"]["Enums"]["booking_status"] | null
+          id: string
+          to_status: Database["public"]["Enums"]["booking_status"] | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          booking_id?: string | null
+          comment?: string | null
+          course_code?: string | null
+          created_at?: string
+          exam_date?: string | null
+          exam_title?: string | null
+          from_status?: Database["public"]["Enums"]["booking_status"] | null
+          id?: string
+          to_status?: Database["public"]["Enums"]["booking_status"] | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          booking_id?: string | null
+          comment?: string | null
+          course_code?: string | null
+          created_at?: string
+          exam_date?: string | null
+          exam_title?: string | null
+          from_status?: Database["public"]["Enums"]["booking_status"] | null
+          id?: string
+          to_status?: Database["public"]["Enums"]["booking_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "public_exam_search"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           cancellation_reason: string | null

@@ -18,6 +18,7 @@ import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
+import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedAdminsRouteImport } from './routes/_authenticated/admins'
 import { Route as AuthenticatedVenuesIndexRouteImport } from './routes/_authenticated/venues/index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings/index'
@@ -71,6 +72,11 @@ const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminsRoute = AuthenticatedAdminsRouteImport.update({
   id: '/admins',
   path: '/admins',
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/find-exam': typeof FindExamRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admins': typeof AuthenticatedAdminsRoute
+  '/audit': typeof AuthenticatedAuditRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/find-exam': typeof FindExamRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admins': typeof AuthenticatedAdminsRoute
+  '/audit': typeof AuthenticatedAuditRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/find-exam': typeof FindExamRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admins': typeof AuthenticatedAdminsRoute
+  '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/find-exam'
     | '/sitemap.xml'
     | '/admins'
+    | '/audit'
     | '/calendar'
     | '/dashboard'
     | '/notifications'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/find-exam'
     | '/sitemap.xml'
     | '/admins'
+    | '/audit'
     | '/calendar'
     | '/dashboard'
     | '/notifications'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/find-exam'
     | '/sitemap.xml'
     | '/_authenticated/admins'
+    | '/_authenticated/audit'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
     | '/_authenticated/notifications'
@@ -291,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/audit': {
+      id: '/_authenticated/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuthenticatedAuditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admins': {
       id: '/_authenticated/admins'
       path: '/admins'
@@ -345,6 +364,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminsRoute: typeof AuthenticatedAdminsRoute
+  AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -359,6 +379,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminsRoute: AuthenticatedAdminsRoute,
+  AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
@@ -384,13 +405,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

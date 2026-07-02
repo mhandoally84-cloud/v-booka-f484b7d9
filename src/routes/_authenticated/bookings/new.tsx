@@ -11,9 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Building2, Check } from "lucide-react";
+import { CalendarIcon, Building2, Check, AlertTriangle, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/bookings/new")({
@@ -38,17 +38,61 @@ function NewBooking() {
     queryFn: async () => (await supabase.from("time_slots").select("*").order("sort_order")).data ?? [],
   });
 
-  const { data: availableVenues = [] } = useQuery({
-    queryKey: ["available-venues-all", date?.toISOString(), slotId],
+  // All active venues + which are taken (with the conflicting course) for this date+slot
+  const { data: venueList = [] } = useQuery({
+    queryKey: ["venues-with-conflicts", date?.toISOString(), slotId],
     enabled: !!date && !!slotId,
     queryFn: async () => {
-      const { data: allVenues } = await supabase
-        .from("venues").select("*").eq("is_active", true).eq("under_maintenance", false).order("capacity", { ascending: false });
-      const { data: taken } = await supabase
-        .from("bookings").select("venue_id")
-        .eq("status", "approved").eq("exam_date", format(date!, "yyyy-MM-dd")).eq("time_slot_id", slotId);
-      const takenIds = new Set((taken ?? []).map((b) => b.venue_id));
-      return (allVenues ?? []).filter((v) => !takenIds.has(v.id));
+      const [{ data: allVenues }, { data: taken }] = await Promise.all([
+        supabase.from("venues").select("*").eq("is_active", true).eq("under_maintenance", false).order("capacity", { ascending: false }),
+        supabase
+          .from("bookings")
+          .select("venue_id, course_code, exam_title, department")
+          .eq("status", "approved")
+          .eq("exam_date", format(date!, "yyyy-MM-dd"))
+          .eq("time_slot_id", slotId),
+      ]);
+      const takenMap = new Map((taken ?? []).map((b: any) => [b.venue_id, b]));
+      return (allVenues ?? []).map((v: any) => ({ ...v, conflict: takenMap.get(v.id) ?? null }));
+    },
+  });
+
+  const availableVenues = useMemo(() => venueList.filter((v: any) => !v.conflict), [venueList]);
+  const takenVenues = useMemo(() => venueList.filter((v: any) => v.conflict), [venueList]);
+
+  // Alternative-slot suggestions when the wizard can't fit all students on this date+slot
+  const availableCapacity = availableVenues.reduce((s: number, v: any) => s + v.capacity, 0);
+  const needsAlternatives = venueList.length > 0 && availableCapacity < expectedStudents;
+
+  const { data: alternatives = [] } = useQuery({
+    queryKey: ["alternative-slots", date?.toISOString(), slotId, expectedStudents],
+    enabled: !!date && !!slotId && needsAlternatives,
+    queryFn: async () => {
+      // Look at same day + next 3 days across all slots; return slots whose free capacity ≥ expectedStudents
+      const days = [0, 1, 2, 3].map((d) => addDays(date!, d));
+      const dateStrs = days.map((d) => format(d, "yyyy-MM-dd"));
+      const [{ data: allVenues }, { data: bookings }] = await Promise.all([
+        supabase.from("venues").select("id, capacity").eq("is_active", true).eq("under_maintenance", false),
+        supabase.from("bookings").select("venue_id, exam_date, time_slot_id").eq("status", "approved").in("exam_date", dateStrs),
+      ]);
+      const totalCapByVenue = new Map((allVenues ?? []).map((v: any) => [v.id, v.capacity]));
+      const results: { date: string; slotId: string; slotLabel: string; freeCapacity: number; freeVenues: number }[] = [];
+      for (const d of days) {
+        const ds = format(d, "yyyy-MM-dd");
+        for (const s of slots as any[]) {
+          const takenIds = new Set(
+            (bookings ?? []).filter((b: any) => b.exam_date === ds && b.time_slot_id === s.id).map((b: any) => b.venue_id),
+          );
+          let cap = 0, count = 0;
+          for (const [vid, vcap] of totalCapByVenue.entries()) {
+            if (!takenIds.has(vid)) { cap += vcap as number; count += 1; }
+          }
+          if (cap >= expectedStudents && !(ds === format(date!, "yyyy-MM-dd") && s.id === slotId)) {
+            results.push({ date: ds, slotId: s.id, slotLabel: s.label, freeCapacity: cap, freeVenues: count });
+          }
+        }
+      }
+      return results.slice(0, 5);
     },
   });
 
@@ -62,6 +106,15 @@ function NewBooking() {
   function toggleVenue(id: string) {
     setVenueIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   }
+
+  function applyAlternative(alt: { date: string; slotId: string }) {
+    setDate(new Date(alt.date + "T00:00:00"));
+    setSlotId(alt.slotId);
+    setVenueIds([]);
+    toast.success("Switched to a slot with enough seats");
+  }
+
+
 
   async function submit() {
     if (!user || !date || !slotId || venueIds.length === 0) return;
@@ -196,9 +249,37 @@ function NewBooking() {
             </p>
           </CardHeader>
           <CardContent>
-            {availableVenues.length === 0 ? (
+            {needsAlternatives && alternatives.length > 0 && (
+              <div className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3">
+                <div className="flex items-start gap-2 text-sm">
+                  <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-warning-foreground" />
+                  <div className="flex-1">
+                    <div className="font-medium text-warning-foreground">
+                      Not enough free capacity on this slot ({availableCapacity} of {expectedStudents} seats).
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Try one of these slots that has room for everyone:</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {alternatives.map((alt) => (
+                        <button
+                          key={`${alt.date}-${alt.slotId}`}
+                          type="button"
+                          onClick={() => applyAlternative(alt)}
+                          className="rounded-md border border-warning/40 bg-background px-2.5 py-1.5 text-xs hover:border-primary hover:bg-primary/5"
+                        >
+                          <span className="font-medium">{format(new Date(alt.date + "T00:00:00"), "EEE d MMM")}</span>
+                          <span className="text-muted-foreground"> · {alt.slotLabel}</span>
+                          <span className="ml-1 text-muted-foreground">({alt.freeCapacity} seats)</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {availableVenues.length === 0 && takenVenues.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">
-                No venues available for this date and slot. Try a different combination.
+                No venues configured. Ask the Exams Office to add venues.
               </div>
             ) : (
               <div className="space-y-2">
@@ -230,8 +311,39 @@ function NewBooking() {
                     </button>
                   );
                 })}
+
+                {takenVenues.length > 0 && (
+                  <div className="pt-3">
+                    <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                      Already booked at this slot
+                    </div>
+                    <div className="space-y-2">
+                      {takenVenues.map((v: any) => (
+                        <div
+                          key={v.id}
+                          className="flex w-full items-center justify-between rounded-lg border border-dashed border-destructive/30 bg-destructive/5 p-4 opacity-80"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                              <Building2 className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-muted-foreground line-through">{v.name}</div>
+                              <div className="text-sm text-destructive">
+                                Taken by <span className="font-medium">{v.conflict.course_code} — {v.conflict.exam_title}</span>
+                                {v.conflict.department && <span className="text-muted-foreground"> ({v.conflict.department})</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
             <div className="mt-4 flex gap-2">
               <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
               <Button

@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { TodaysVenues } from "@/components/TodaysVenues";
 import { DashboardCharts } from "@/components/DashboardCharts";
-import { CalendarCheck2, Clock, AlertCircle, Building2, TrendingUp, ClipboardList } from "lucide-react";
+import { CalendarCheck2, Clock, AlertCircle, Building2, TrendingUp, ClipboardList, Sparkles, PlusCircle, Search, Users } from "lucide-react";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -46,12 +46,54 @@ function Dashboard() {
     },
   });
 
+  const isBrandNew = !isAdmin && !myLoading && myBookings.length === 0;
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Welcome{user?.email ? `, ${user.email.split("@")[0]}` : ""}</h1>
         <p className="text-muted-foreground">{isAdmin ? "Exams Office overview" : "Your booking activity"}</p>
       </div>
+
+      {isBrandNew && (
+        <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-gold/5 dark:from-primary/10 dark:to-gold/10">
+          <CardContent className="grid gap-6 p-6 md:grid-cols-[1fr_auto] md:items-center">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                <Sparkles className="h-3.5 w-3.5" /> Welcome to Mzumbe Bookings
+              </div>
+              <h2 className="text-xl font-semibold">Book your first exam venue in three quick steps</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Pick a date and slot, choose venues, add exam details. The Exams Office reviews and approves.</p>
+              <ol className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+                <li className="flex items-center gap-2 rounded-md border bg-card/50 p-3"><span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">1</span> Choose date & slot</li>
+                <li className="flex items-center gap-2 rounded-md border bg-card/50 p-3"><span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">2</span> Select venue(s)</li>
+                <li className="flex items-center gap-2 rounded-md border bg-card/50 p-3"><span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">3</span> Submit for review</li>
+              </ol>
+            </div>
+            <div className="flex flex-col gap-2 md:min-w-[180px]">
+              <Link to="/bookings/new"><Button className="w-full"><PlusCircle className="mr-2 h-4 w-4" />New booking</Button></Link>
+              <Link to="/venues"><Button variant="outline" className="w-full"><Building2 className="mr-2 h-4 w-4" />Browse venues</Button></Link>
+              <Link to="/find-exam"><Button variant="ghost" className="w-full"><Search className="mr-2 h-4 w-4" />Find an exam</Button></Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isAdmin && stats && stats.pending === 0 && stats.approved === 0 && stats.venues === 0 && (
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-gold/5 dark:from-primary/10 dark:to-gold/10">
+          <CardContent className="p-6">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              <Sparkles className="h-3.5 w-3.5" /> Get started as Exams Office
+            </div>
+            <h2 className="text-xl font-semibold">Set up your venues and invite lecturers</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Add the halls, labs and exam rooms lecturers can request, then promote colleagues to admin.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link to="/venues/new"><Button><Building2 className="mr-2 h-4 w-4" />Add first venue</Button></Link>
+              <Link to="/admins"><Button variant="outline"><Users className="mr-2 h-4 w-4" />Manage admins</Button></Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {isAdmin && stats && (
         <div className="grid gap-4 sm:grid-cols-3">
@@ -64,6 +106,7 @@ function Dashboard() {
       {isAdmin && <DashboardCharts />}
 
       <TodaysVenues />
+
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
