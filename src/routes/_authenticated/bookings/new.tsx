@@ -396,6 +396,26 @@ function NewBooking() {
               <Label htmlFor="sr">Special requirements (optional)</Label>
               <Textarea id="sr" value={form.special_requirements} onChange={(e) => setForm({...form, special_requirements: e.target.value})} placeholder="e.g. Extra projector, wheelchair access" />
             </div>
+            <div className="space-y-3">
+              <div>
+                <Label>Programmes sitting the exam</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  List the programmes (e.g. <em>BSc Computer Science Y2</em>, <em>BBA Y3</em>). These are shown to students who search this course code so they know which venue to attend.
+                </p>
+              </div>
+              {selectedVenues.map((v: any) => (
+                <ProgrammesField
+                  key={v.id}
+                  venueLabel={selectedVenues.length > 1 ? `${v.name} · ${v.building}` : null}
+                  value={programmesByVenue[v.id] ?? []}
+                  onChange={(list) => setVenueProgrammes(v.id, list)}
+                />
+              ))}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sr">Special requirements (optional)</Label>
+              <Textarea id="sr" value={form.special_requirements} onChange={(e) => setForm({...form, special_requirements: e.target.value})} placeholder="e.g. Extra projector, wheelchair access" />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="nt">Notes for the Exams Office (optional)</Label>
               <Textarea id="nt" value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} />
