@@ -26,6 +26,7 @@ function BookingDetail() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [comment, setComment] = useState("");
+  const [cancelReason, setCancelReason] = useState("");
   const [busy, setBusy] = useState(false);
 
   const { data, isLoading } = useQuery({
