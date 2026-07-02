@@ -31,7 +31,13 @@ function NewBooking() {
   const [form, setForm] = useState({
     course_code: "", exam_title: "", department: "", special_requirements: "", notes: "",
   });
+  // Programmes sitting the exam, keyed by venue id (e.g. ["BSc Computer Science", "BBA Year 2"])
+  const [programmesByVenue, setProgrammesByVenue] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
+
+  function setVenueProgrammes(venueId: string, list: string[]) {
+    setProgrammesByVenue((p) => ({ ...p, [venueId]: list }));
+  }
 
   const { data: slots = [] } = useQuery({
     queryKey: ["time-slots"],
