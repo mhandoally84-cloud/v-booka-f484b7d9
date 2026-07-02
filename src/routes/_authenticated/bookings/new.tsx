@@ -392,10 +392,6 @@ function NewBooking() {
               <Label htmlFor="et">Exam title</Label>
               <Input id="et" value={form.exam_title} onChange={(e) => setForm({...form, exam_title: e.target.value})} placeholder="e.g. Introduction to Databases — Final Exam" required />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="sr">Special requirements (optional)</Label>
-              <Textarea id="sr" value={form.special_requirements} onChange={(e) => setForm({...form, special_requirements: e.target.value})} placeholder="e.g. Extra projector, wheelchair access" />
-            </div>
             <div className="space-y-3">
               <div>
                 <Label>Programmes sitting the exam</Label>
