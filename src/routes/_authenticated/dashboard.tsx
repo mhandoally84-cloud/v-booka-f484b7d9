@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { TodaysVenues } from "@/components/TodaysVenues";
 import { DashboardCharts } from "@/components/DashboardCharts";
-import { CalendarCheck2, Clock, AlertCircle, Building2, TrendingUp, ClipboardList } from "lucide-react";
+import { CalendarCheck2, Clock, AlertCircle, Building2, TrendingUp, ClipboardList, Sparkles, PlusCircle, Search, Users } from "lucide-react";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
