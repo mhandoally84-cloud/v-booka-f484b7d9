@@ -3,10 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, LayoutDashboard, CalendarDays, ClipboardList, Building2, BarChart3, Bell, LogOut, Menu, X, ShieldCheck, ScrollText } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { heartbeat } from "@/lib/admin-users.functions";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 
@@ -35,6 +37,16 @@ function AppLayout() {
     },
     refetchInterval: 60_000,
   });
+
+  const beat = useServerFn(heartbeat);
+  useEffect(() => {
+    beat().catch(() => {});
+    const id = setInterval(() => beat().catch(() => {}), 2 * 60 * 1000);
+    const onVisible = () => { if (document.visibilityState === "visible") beat().catch(() => {}); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
+  }, [beat]);
+
 
   const nav = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },

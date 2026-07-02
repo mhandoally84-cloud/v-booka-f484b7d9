@@ -90,7 +90,7 @@ export type Database = {
           status: Database["public"]["Enums"]["booking_status"]
           time_slot_id: string
           updated_at: string
-          user_id: string
+          user_id: string | null
           venue_id: string
         }
         Insert: {
@@ -111,7 +111,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["booking_status"]
           time_slot_id: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           venue_id: string
         }
         Update: {
@@ -132,7 +132,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["booking_status"]
           time_slot_id?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           venue_id?: string
         }
         Relationships: [
@@ -185,18 +185,21 @@ export type Database = {
           department: string | null
           full_name: string
           id: string
+          last_seen_at: string | null
         }
         Insert: {
           created_at?: string
           department?: string | null
           full_name?: string
           id: string
+          last_seen_at?: string | null
         }
         Update: {
           created_at?: string
           department?: string | null
           full_name?: string
           id?: string
+          last_seen_at?: string | null
         }
         Relationships: []
       }

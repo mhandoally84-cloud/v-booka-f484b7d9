@@ -37,8 +37,9 @@ function BookingDetail() {
         .select("*, venues(name, building, capacity), time_slots(label, start_time, end_time)")
         .eq("id", id).single();
       if (!booking) return null;
-      const { data: profile } = await supabase
-        .from("profiles").select("full_name, department").eq("id", booking.user_id).maybeSingle();
+      const { data: profile } = booking.user_id
+        ? await supabase.from("profiles").select("full_name, department").eq("id", booking.user_id).maybeSingle()
+        : { data: null };
       return { ...booking, profile };
     },
   });
@@ -63,7 +64,7 @@ function BookingDetail() {
       }
       return toast.error(error.message);
     }
-    await notify(b.user_id, `Your booking for ${b.course_code} was ${status}`, `/bookings/${id}`);
+    if (b.user_id) await notify(b.user_id, `Your booking for ${b.course_code} was ${status}`, `/bookings/${id}`);
     toast.success(`Booking ${status}`);
     qc.invalidateQueries();
   }
