@@ -21,6 +21,9 @@ interface Result {
   exam_title: string;
   exam_date: string;
   department: string;
+  status: string;
+  cancellation_reason: string | null;
+  cancelled_at: string | null;
   venues: { name: string; building: string } | null;
   time_slots: { label: string; start_time: string; end_time: string } | null;
 }
@@ -36,8 +39,8 @@ function FindExam() {
     setLoading(true);
     const { data } = await supabase
       .from("bookings")
-      .select("id, course_code, exam_title, exam_date, department, venues(name, building), time_slots(label, start_time, end_time)")
-      .eq("status", "approved")
+      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, venues(name, building), time_slots(label, start_time, end_time)")
+      .in("status", ["approved", "cancelled"])
       .ilike("course_code", `%${term.trim()}%`)
       .order("exam_date", { ascending: true });
     setResults((data as unknown as Result[]) ?? []);
@@ -83,24 +86,38 @@ function FindExam() {
                 </CardContent>
               </Card>
             ) : (
-              results.map((r) => (
-                <Card key={r.id}>
+              results.map((r) => {
+                const cancelled = r.status === "cancelled";
+                return (
+                <Card key={r.id} className={cancelled ? "border-destructive/40" : ""}>
                   <CardContent className="p-6">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <div className="text-lg font-semibold">{r.course_code} — {r.exam_title}</div>
                         <div className="text-sm text-muted-foreground">{r.department}</div>
                       </div>
-                      <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">Confirmed</span>
+                      {cancelled ? (
+                        <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">Cancelled</span>
+                      ) : (
+                        <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">Confirmed</span>
+                      )}
                     </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3 text-sm">
+                    <div className={"mt-4 grid gap-3 sm:grid-cols-3 text-sm " + (cancelled ? "opacity-60 line-through" : "")}>
                       <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> {r.venues?.name} <span className="text-muted-foreground">· {r.venues?.building}</span></div>
                       <div className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" /> {format(new Date(r.exam_date), "EEE, d MMM yyyy")}</div>
                       <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {r.time_slots?.label} ({r.time_slots?.start_time?.slice(0,5)}–{r.time_slots?.end_time?.slice(0,5)})</div>
                     </div>
+                    {cancelled && (
+                      <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+                        <div className="font-medium text-destructive">Reason for cancellation</div>
+                        <p className="mt-1 text-muted-foreground">{r.cancellation_reason ?? "No reason was provided."}</p>
+                        {r.cancelled_at && <p className="mt-1 text-xs text-muted-foreground">Cancelled on {format(new Date(r.cancelled_at), "EEE, d MMM yyyy · HH:mm")}</p>}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              ))
+                );
+              })
             )}
           </div>
         )}

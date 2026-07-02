@@ -26,6 +26,7 @@ function BookingDetail() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [comment, setComment] = useState("");
+  const [cancelReason, setCancelReason] = useState("");
   const [busy, setBusy] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -68,11 +69,18 @@ function BookingDetail() {
   }
 
   async function cancelOwn() {
+    const reason = cancelReason.trim();
+    if (!reason) return toast.error("Please tell students why you are cancelling.");
+    if (reason.length > 500) return toast.error("Reason must be 500 characters or fewer.");
     setBusy(true);
-    const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", id);
+    const { error } = await supabase.from("bookings").update({
+      status: "cancelled",
+      cancellation_reason: reason,
+      cancelled_at: new Date().toISOString(),
+    }).eq("id", id);
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Booking cancelled");
+    toast.success("Booking cancelled. Students searching this exam will see your note.");
     qc.invalidateQueries();
   }
 
@@ -85,7 +93,7 @@ function BookingDetail() {
   }
 
   const canReview = isAdmin && b.status === "pending";
-  const canCancel = user?.id === b.user_id && b.status === "pending";
+  const canCancel = user?.id === b.user_id && (b.status === "pending" || b.status === "approved");
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 print:max-w-none">
@@ -134,6 +142,16 @@ function BookingDetail() {
         </Card>
       )}
 
+      {b.cancellation_reason && (
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardHeader><CardTitle className="text-base flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Cancellation reason</CardTitle></CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{b.cancellation_reason}</p>
+            {b.cancelled_at && <p className="mt-2 text-xs text-muted-foreground">Cancelled on {format(new Date(b.cancelled_at), "d MMM yyyy · HH:mm")}</p>}
+          </CardContent>
+        </Card>
+      )}
+
       {canReview && (
         <Card>
           <CardHeader><CardTitle>Review this request</CardTitle></CardHeader>
@@ -147,8 +165,31 @@ function BookingDetail() {
         </Card>
       )}
 
+      {canCancel && (
+        <Card className="print:hidden">
+          <CardHeader>
+            <CardTitle className="text-base">Cancel this booking</CardTitle>
+            <p className="text-sm text-muted-foreground">Your reason will be shown to students who look up this exam so they know why it was cancelled.</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Textarea
+              placeholder="e.g. Lecturer unavailable due to illness — exam rescheduled to next week"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              maxLength={500}
+              rows={3}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">{cancelReason.length}/500</span>
+              <Button variant="destructive" onClick={cancelOwn} disabled={busy || !cancelReason.trim()}>
+                Cancel booking
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex gap-2 print:hidden">
-        {canCancel && <Button variant="outline" onClick={cancelOwn} disabled={busy}>Cancel booking</Button>}
         {isAdmin && <Button variant="ghost" onClick={del} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Delete</Button>}
       </div>
 
