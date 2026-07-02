@@ -55,17 +55,58 @@ function NewBooking() {
   async function submit() {
     if (!user || !date || !slotId || !venueId) return;
     setSaving(true);
-    const { data, error } = await supabase.from("bookings").insert({
+    const examDate = format(date, "yyyy-MM-dd");
+
+    // Check for an existing approved booking on the same venue, date, and slot
+    const { data: conflict } = await supabase
+      .from("bookings")
+      .select("id, course_code, exam_title, profiles:user_id(full_name)")
+      .eq("status", "approved")
+      .eq("venue_id", venueId)
+      .eq("exam_date", examDate)
+      .eq("time_slot_id", slotId)
+      .maybeSingle();
+
+    const slot = slots.find((s: any) => s.id === slotId);
+    const slotLabel = slot ? `${slot.label} (${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)})` : "the selected slot";
+
+    let status: "approved" | "rejected" = "approved";
+    let reviewer_comment: string | null = null;
+
+    if (conflict) {
+      status = "rejected";
+      reviewer_comment = `Automatically rejected: this venue is already booked at ${slotLabel} on ${format(date, "d MMM yyyy")} for ${conflict.course_code} — ${conflict.exam_title}. Please choose another venue or time slot.`;
+    }
+
+    const insertPayload: any = {
       user_id: user.id,
       venue_id: venueId,
       time_slot_id: slotId,
-      exam_date: format(date, "yyyy-MM-dd"),
+      exam_date: examDate,
       ...form,
       expected_students: Number(form.expected_students),
-    }).select("id").single();
+      status,
+      reviewer_comment,
+      reviewed_at: new Date().toISOString(),
+    };
+
+    let { data, error } = await supabase.from("bookings").insert(insertPayload).select("id").single();
+
+    // Race condition safeguard: unique index blocked a second approval → auto-reject
+    if (error && error.message.includes("bookings_no_double_approved")) {
+      insertPayload.status = "rejected";
+      insertPayload.reviewer_comment = `Automatically rejected: this venue was just booked by another user for ${slotLabel} on ${format(date, "d MMM yyyy")}. Please choose another venue or time slot.`;
+      ({ data, error } = await supabase.from("bookings").insert(insertPayload).select("id").single());
+    }
+
     setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Booking submitted for approval");
+    if (error || !data) return toast.error(error?.message ?? "Could not create booking");
+
+    if (insertPayload.status === "approved") {
+      toast.success("Venue is available — booking approved automatically");
+    } else {
+      toast.error("Venue is already booked at that time — request rejected");
+    }
     navigate({ to: "/bookings/$id", params: { id: data.id } });
   }
 
