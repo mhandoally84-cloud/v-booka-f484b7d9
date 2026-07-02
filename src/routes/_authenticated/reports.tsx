@@ -51,13 +51,20 @@ function Reports() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold">Reports</h1>
-          <p className="text-muted-foreground">Utilization and department stats</p>
+          <p className="text-muted-foreground">Utilization, department stats, and audit trail</p>
         </div>
-        <Button onClick={exportCSV}><Download className="mr-2 h-4 w-4" />Export CSV</Button>
+        <div className="flex gap-2">
+          <Link to="/audit"><Button variant="outline"><ScrollText className="mr-2 h-4 w-4" />Audit log</Button></Link>
+          <Button onClick={exportCSV}><Download className="mr-2 h-4 w-4" />Export CSV</Button>
+        </div>
       </div>
+
+      <VenueHeatmap weeks={4} />
+      <VenueUtilization weeks={4} />
+
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
