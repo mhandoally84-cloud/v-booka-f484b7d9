@@ -18,6 +18,7 @@ import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
+import { Route as AuthenticatedAdminsRouteImport } from './routes/_authenticated/admins'
 import { Route as AuthenticatedVenuesIndexRouteImport } from './routes/_authenticated/venues/index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings/index'
 import { Route as AuthenticatedVenuesNewRouteImport } from './routes/_authenticated/venues/new'
@@ -70,6 +71,11 @@ const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminsRoute = AuthenticatedAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedVenuesIndexRoute =
   AuthenticatedVenuesIndexRouteImport.update({
     id: '/venues/',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/find-exam': typeof FindExamRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/admins': typeof AuthenticatedAdminsRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/find-exam': typeof FindExamRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/admins': typeof AuthenticatedAdminsRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/find-exam': typeof FindExamRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/admins': typeof AuthenticatedAdminsRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/find-exam'
     | '/sitemap.xml'
+    | '/admins'
     | '/calendar'
     | '/dashboard'
     | '/notifications'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/find-exam'
     | '/sitemap.xml'
+    | '/admins'
     | '/calendar'
     | '/dashboard'
     | '/notifications'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/find-exam'
     | '/sitemap.xml'
+    | '/_authenticated/admins'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
     | '/_authenticated/notifications'
@@ -279,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admins': {
+      id: '/_authenticated/admins'
+      path: '/admins'
+      fullPath: '/admins'
+      preLoaderRoute: typeof AuthenticatedAdminsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/venues/': {
       id: '/_authenticated/venues/'
       path: '/venues'
@@ -325,6 +344,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminsRoute: typeof AuthenticatedAdminsRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -338,6 +358,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminsRoute: AuthenticatedAdminsRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,

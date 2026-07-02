@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, useNavigate, useRouterState } 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, LayoutDashboard, CalendarDays, ClipboardList, Building2, BarChart3, Bell, LogOut, Menu, X } from "lucide-react";
+import { GraduationCap, LayoutDashboard, CalendarDays, ClipboardList, Building2, BarChart3, Bell, LogOut, Menu, X, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
