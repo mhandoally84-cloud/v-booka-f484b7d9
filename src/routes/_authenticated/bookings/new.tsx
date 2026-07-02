@@ -428,3 +428,67 @@ function NewBooking() {
     </div>
   );
 }
+
+function ProgrammesField({
+  venueLabel,
+  value,
+  onChange,
+}: {
+  venueLabel: string | null;
+  value: string[];
+  onChange: (list: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+
+  function add() {
+    const clean = draft.trim();
+    if (!clean) return;
+    if (value.includes(clean)) { setDraft(""); return; }
+    onChange([...value, clean]);
+    setDraft("");
+  }
+  function remove(p: string) {
+    onChange(value.filter((x) => x !== p));
+  }
+
+  return (
+    <div className="rounded-md border p-3">
+      {venueLabel && (
+        <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <Building2 className="h-3.5 w-3.5 text-primary" /> {venueLabel}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+          placeholder="Type a programme and press Enter (e.g. BSc CS Y2)"
+        />
+        <Button type="button" variant="outline" onClick={add}>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+      {value.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {value.map((p) => (
+            <span
+              key={p}
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+            >
+              {p}
+              <button
+                type="button"
+                onClick={() => remove(p)}
+                className="rounded-full p-0.5 hover:bg-primary/20"
+                aria-label={`Remove ${p}`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
