@@ -167,6 +167,7 @@ function NewBooking() {
         time_slot_id: slotId,
         exam_date: examDate,
         ...form,
+        programmes: programmesByVenue[v.id] ?? [],
         expected_students: seats,
         status,
         reviewer_comment,
