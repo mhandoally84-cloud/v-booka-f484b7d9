@@ -1,0 +1,1 @@
+GRANT SELECT ON public.bookings TO anon;
