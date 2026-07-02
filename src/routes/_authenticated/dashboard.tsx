@@ -4,8 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/StatusBadge";
-import { CalendarCheck2, Clock, AlertCircle, Building2, TrendingUp } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { TodaysVenues } from "@/components/TodaysVenues";
+import { DashboardCharts } from "@/components/DashboardCharts";
+import { CalendarCheck2, Clock, AlertCircle, Building2, TrendingUp, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -15,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { user, isAdmin } = useAuth();
 
-  const { data: myBookings = [] } = useQuery({
+  const { data: myBookings = [], isLoading: myLoading } = useQuery({
     queryKey: ["my-bookings", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -57,25 +61,36 @@ function Dashboard() {
         </div>
       )}
 
+      {isAdmin && <DashboardCharts />}
+
+      <TodaysVenues />
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{isAdmin ? "Recent requests" : "My upcoming bookings"}</CardTitle>
           <Link to="/bookings"><Button variant="ghost" size="sm">View all</Button></Link>
         </CardHeader>
         <CardContent>
-          {myBookings.length === 0 ? (
-            <div className="py-8 text-center">
-              <Clock className="mx-auto mb-3 h-10 w-10 text-muted-foreground/60" />
-              <p className="text-muted-foreground">No bookings yet.</p>
-              <Link to="/bookings/new"><Button className="mt-4">Create your first booking</Button></Link>
+          {myLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
             </div>
+          ) : myBookings.length === 0 ? (
+            <EmptyState
+              icon={ClipboardList}
+              title="No bookings yet"
+              description="Submit your first venue request in under a minute."
+              action={<Link to="/bookings/new"><Button>Create your first booking</Button></Link>}
+            />
           ) : (
             <div className="divide-y">
               {myBookings.map((b: any) => (
-                <Link key={b.id} to="/bookings/$id" params={{ id: b.id }} className="flex items-center justify-between py-3 hover:bg-muted/30 -mx-2 px-2 rounded">
-                  <div>
-                    <div className="font-medium">{b.course_code} — {b.exam_title}</div>
-                    <div className="text-sm text-muted-foreground">
+                <Link key={b.id} to="/bookings/$id" params={{ id: b.id }} className="-mx-2 flex min-h-11 items-center justify-between rounded px-2 py-3 transition hover:bg-muted/40">
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{b.course_code} — {b.exam_title}</div>
+                    <div className="truncate text-sm text-muted-foreground">
                       {b.venues?.name} · {format(new Date(b.exam_date), "d MMM yyyy")} · {b.time_slots?.label}
                     </div>
                   </div>
