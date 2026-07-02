@@ -24,6 +24,7 @@ interface Result {
   status: string;
   cancellation_reason: string | null;
   cancelled_at: string | null;
+  programmes: string[] | null;
   venue_name: string | null;
   venue_building: string | null;
   time_slot_label: string | null;
@@ -42,7 +43,7 @@ function FindExam() {
     setLoading(true);
     const { data } = await (supabase as any)
       .from("public_exam_search")
-      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, venue_name, venue_building, time_slot_label, time_slot_start, time_slot_end")
+      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, programmes, venue_name, venue_building, time_slot_label, time_slot_start, time_slot_end")
       .ilike("course_code", `%${term.trim()}%`)
       .order("exam_date", { ascending: true });
     setResults((data as Result[] | null) ?? []);
