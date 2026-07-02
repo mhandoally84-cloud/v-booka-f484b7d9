@@ -249,9 +249,37 @@ function NewBooking() {
             </p>
           </CardHeader>
           <CardContent>
-            {availableVenues.length === 0 ? (
+            {needsAlternatives && alternatives.length > 0 && (
+              <div className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3">
+                <div className="flex items-start gap-2 text-sm">
+                  <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-warning-foreground" />
+                  <div className="flex-1">
+                    <div className="font-medium text-warning-foreground">
+                      Not enough free capacity on this slot ({availableCapacity} of {expectedStudents} seats).
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Try one of these slots that has room for everyone:</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {alternatives.map((alt) => (
+                        <button
+                          key={`${alt.date}-${alt.slotId}`}
+                          type="button"
+                          onClick={() => applyAlternative(alt)}
+                          className="rounded-md border border-warning/40 bg-background px-2.5 py-1.5 text-xs hover:border-primary hover:bg-primary/5"
+                        >
+                          <span className="font-medium">{format(new Date(alt.date + "T00:00:00"), "EEE d MMM")}</span>
+                          <span className="text-muted-foreground"> · {alt.slotLabel}</span>
+                          <span className="ml-1 text-muted-foreground">({alt.freeCapacity} seats)</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {availableVenues.length === 0 && takenVenues.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">
-                No venues available for this date and slot. Try a different combination.
+                No venues configured. Ask the Exams Office to add venues.
               </div>
             ) : (
               <div className="space-y-2">
@@ -283,8 +311,39 @@ function NewBooking() {
                     </button>
                   );
                 })}
+
+                {takenVenues.length > 0 && (
+                  <div className="pt-3">
+                    <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                      Already booked at this slot
+                    </div>
+                    <div className="space-y-2">
+                      {takenVenues.map((v: any) => (
+                        <div
+                          key={v.id}
+                          className="flex w-full items-center justify-between rounded-lg border border-dashed border-destructive/30 bg-destructive/5 p-4 opacity-80"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                              <Building2 className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-muted-foreground line-through">{v.name}</div>
+                              <div className="text-sm text-destructive">
+                                Taken by <span className="font-medium">{v.conflict.course_code} — {v.conflict.exam_title}</span>
+                                {v.conflict.department && <span className="text-muted-foreground"> ({v.conflict.department})</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
             <div className="mt-4 flex gap-2">
               <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
               <Button
