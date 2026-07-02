@@ -7,6 +7,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -54,10 +56,10 @@ function AppLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="flex min-h-screen bg-muted/30 print:bg-white">
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 -translate-x-full bg-sidebar text-sidebar-foreground transition-transform lg:static lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-40 w-64 -translate-x-full bg-sidebar text-sidebar-foreground transition-transform lg:static lg:translate-x-0 print:hidden",
         open && "translate-x-0",
       )}>
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
@@ -68,7 +70,7 @@ function AppLayout() {
               <div className="text-[10px] text-sidebar-foreground/70">Exam Booking</div>
             </div>
           </Link>
-          <button className="lg:hidden" onClick={() => setOpen(false)}><X className="h-5 w-5" /></button>
+          <button className="lg:hidden min-h-11 min-w-11" onClick={() => setOpen(false)} aria-label="Close menu"><X className="h-5 w-5" /></button>
         </div>
         <nav className="space-y-1 p-3">
           {nav.map((item) => {
@@ -79,7 +81,7 @@ function AppLayout() {
                 to={item.to}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex min-h-11 items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
                 )}
               >
@@ -91,7 +93,8 @@ function AppLayout() {
             );
           })}
         </nav>
-        <div className="absolute inset-x-0 bottom-0 border-t border-sidebar-border p-3">
+        <div className="absolute inset-x-0 bottom-0 space-y-1 border-t border-sidebar-border p-3">
+          <ThemeToggle />
           <Button variant="ghost" onClick={signOut} className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             <LogOut className="mr-2 h-4 w-4" /> Sign out
           </Button>
@@ -102,17 +105,22 @@ function AppLayout() {
 
       {/* Main */}
       <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur lg:px-6">
-          <button className="lg:hidden" onClick={() => setOpen(true)}><Menu className="h-6 w-6" /></button>
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur lg:px-6 print:hidden">
+          <button className="lg:hidden min-h-11 min-w-11 -ml-2" onClick={() => setOpen(true)} aria-label="Open menu"><Menu className="h-6 w-6" /></button>
           <div className="flex-1" />
-          <Link to="/bookings/new">
-            <Button className="bg-primary hover:bg-primary/90"><ClipboardList className="mr-2 h-4 w-4" /> New booking</Button>
-          </Link>
+          <div className="flex items-center gap-1">
+            <div className="lg:hidden"><ThemeToggle compact /></div>
+            <Link to="/bookings/new" className="hidden sm:block">
+              <Button className="min-h-11 bg-primary hover:bg-primary/90"><ClipboardList className="mr-2 h-4 w-4" /> New booking</Button>
+            </Link>
+          </div>
         </header>
-        <main className="flex-1 p-4 lg:p-8">
+        <main className="flex-1 p-4 pb-24 lg:p-8 lg:pb-8 print:p-0">
           <Outlet />
         </main>
       </div>
+
+      <MobileBottomNav unread={unread} />
     </div>
   );
 }
