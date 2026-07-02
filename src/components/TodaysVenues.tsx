@@ -28,10 +28,10 @@ export function TodaysVenues() {
         .eq("status", "approved")
         .eq("exam_date", dateKey);
       if (!data || data.length === 0) return [];
-      const userIds = [...new Set(data.map((b) => b.user_id))];
+      const userIds = [...new Set(data.map((b) => b.user_id).filter((id): id is string => !!id))];
       const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", userIds);
       const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
-      return data.map((b) => ({ ...b, booker_name: nameById.get(b.user_id) ?? "—" }));
+      return data.map((b) => ({ ...b, booker_name: b.user_id ? (nameById.get(b.user_id) ?? "—") : "—" }));
     },
   });
 
