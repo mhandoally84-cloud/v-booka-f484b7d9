@@ -69,11 +69,18 @@ function BookingDetail() {
   }
 
   async function cancelOwn() {
+    const reason = cancelReason.trim();
+    if (!reason) return toast.error("Please tell students why you are cancelling.");
+    if (reason.length > 500) return toast.error("Reason must be 500 characters or fewer.");
     setBusy(true);
-    const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", id);
+    const { error } = await supabase.from("bookings").update({
+      status: "cancelled",
+      cancellation_reason: reason,
+      cancelled_at: new Date().toISOString(),
+    }).eq("id", id);
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Booking cancelled");
+    toast.success("Booking cancelled. Students searching this exam will see your note.");
     qc.invalidateQueries();
   }
 
