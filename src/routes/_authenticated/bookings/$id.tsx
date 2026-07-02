@@ -64,7 +64,7 @@ function BookingDetail() {
       }
       return toast.error(error.message);
     }
-    await notify(b.user_id, `Your booking for ${b.course_code} was ${status}`, `/bookings/${id}`);
+    if (b.user_id) await notify(b.user_id, `Your booking for ${b.course_code} was ${status}`, `/bookings/${id}`);
     toast.success(`Booking ${status}`);
     qc.invalidateQueries();
   }
