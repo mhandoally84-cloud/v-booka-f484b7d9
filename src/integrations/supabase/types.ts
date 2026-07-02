@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          cancellation_reason: string | null
+          cancelled_at: string | null
           course_code: string
           created_at: string
           department: string
@@ -35,6 +37,8 @@ export type Database = {
           venue_id: string
         }
         Insert: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           course_code: string
           created_at?: string
           department: string
@@ -54,6 +58,8 @@ export type Database = {
           venue_id: string
         }
         Update: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           course_code?: string
           created_at?: string
           department?: string
