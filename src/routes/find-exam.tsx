@@ -39,8 +39,8 @@ function FindExam() {
     setLoading(true);
     const { data } = await supabase
       .from("bookings")
-      .select("id, course_code, exam_title, exam_date, department, venues(name, building), time_slots(label, start_time, end_time)")
-      .eq("status", "approved")
+      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, venues(name, building), time_slots(label, start_time, end_time)")
+      .in("status", ["approved", "cancelled"])
       .ilike("course_code", `%${term.trim()}%`)
       .order("exam_date", { ascending: true });
     setResults((data as unknown as Result[]) ?? []);
