@@ -20,6 +20,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [department, setDepartment] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +31,19 @@ function AuthPage() {
     if (error) return toast.error(error.message);
     toast.success("Welcome back!");
     navigate({ to: "/dashboard" });
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!resetEmail) return toast.error("Enter your email");
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success("Check your email for a password reset link.");
+    setShowForgot(false);
   }
 
   async function handleSignUp(e: React.FormEvent) {
