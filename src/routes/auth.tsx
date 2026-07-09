@@ -20,6 +20,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [department, setDepartment] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +31,19 @@ function AuthPage() {
     if (error) return toast.error(error.message);
     toast.success("Welcome back!");
     navigate({ to: "/dashboard" });
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!resetEmail) return toast.error("Enter your email");
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success("Check your email for a password reset link.");
+    setShowForgot(false);
   }
 
   async function handleSignUp(e: React.FormEvent) {
@@ -71,20 +86,59 @@ function AuthPage() {
               </TabsList>
 
               <TabsContent value="signin" className="mt-4">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email-in">Email</Label>
-                    <Input id="email-in" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@mzumbe.ac.tz" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="pass-in">Password</Label>
-                    <Input id="pass-in" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Signing in…" : "Sign in"}
-                  </Button>
-                </form>
+                {showForgot ? (
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email-reset">Email for reset instructions</Label>
+                      <Input
+                        id="email-reset"
+                        type="email"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        required
+                        placeholder="you@mzumbe.ac.tz"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        We'll email you a secure link to set a new password.
+                      </p>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Sending…" : "Send reset link"}
+                    </Button>
+                    <button
+                      type="button"
+                      className="w-full text-center text-sm text-primary underline"
+                      onClick={() => setShowForgot(false)}
+                    >
+                      Back to sign in
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email-in">Email</Label>
+                      <Input id="email-in" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@mzumbe.ac.tz" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="pass-in">Password</Label>
+                        <button
+                          type="button"
+                          className="text-xs text-primary underline"
+                          onClick={() => { setResetEmail(email); setShowForgot(true); }}
+                        >
+                          Forgot password?
+                        </button>
+                      </div>
+                      <Input id="pass-in" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Signing in…" : "Sign in"}
+                    </Button>
+                  </form>
+                )}
               </TabsContent>
+
 
               <TabsContent value="signup" className="mt-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
