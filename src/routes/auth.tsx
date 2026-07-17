@@ -13,55 +13,77 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+const USERNAME_RE = /^[a-z][a-z0-9]*\.[a-z][a-z0-9]*$/;
+const USERNAME_DOMAIN = "users.vbooka.local";
+const usernameToEmail = (u: string) => `${u.trim().toLowerCase()}@${USERNAME_DOMAIN}`;
+
 function AuthPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [department, setDepartment] = useState("");
+  const [recoveryEmail, setRecoveryEmail] = useState("");
   const [showForgot, setShowForgot] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
+    const u = username.trim().toLowerCase();
+    if (!USERNAME_RE.test(u)) return toast.error("Username must look like firstname.lastname");
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: usernameToEmail(u), password });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error("Invalid username or password");
     toast.success("Welcome back!");
     navigate({ to: "/dashboard" });
   }
 
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
-    if (!resetEmail) return toast.error("Enter your email");
+    if (!resetEmail) return toast.error("Enter your recovery email");
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Check your email for a password reset link.");
+    toast.success("If that email is on file, a reset link has been sent.");
     setShowForgot(false);
   }
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.toLowerCase().endsWith("@mzumbe.ac.tz") && !email.toLowerCase().endsWith("@student.mzumbe.ac.tz")) {
-      return toast.error("Please use your Mzumbe University email address (@mzumbe.ac.tz)");
+    const u = username.trim().toLowerCase();
+    if (!USERNAME_RE.test(u)) {
+      return toast.error("Username must be firstname.lastname (letters only, e.g. ally.mhando)");
+    }
+    if (password.length < 8) return toast.error("Password must be at least 8 characters");
+    if (recoveryEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recoveryEmail)) {
+      return toast.error("Recovery email is not valid");
     }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
-      email,
+      email: usernameToEmail(u),
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: { full_name: fullName, department },
+        data: {
+          full_name: fullName,
+          department,
+          username: u,
+          recovery_email: recoveryEmail.trim().toLowerCase() || null,
+        },
       },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      if (error.message.toLowerCase().includes("already")) {
+        return toast.error("That username is already taken");
+      }
+      return toast.error(error.message);
+    }
     toast.success("Account created! Signing you in…");
     navigate({ to: "/dashboard" });
   }
@@ -74,7 +96,7 @@ function AuthPage() {
           <CardHeader>
             <CardTitle className="text-2xl">Staff & Invigilator access</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Sign in with your Mzumbe University email. Students don't need an account —{" "}
+              Sign in with your username (e.g. <span className="font-mono">ally.mhando</span>). Students don't need an account —{" "}
               <Link to="/find-exam" className="text-primary underline">look up your exam here</Link>.
             </p>
           </CardHeader>
@@ -89,17 +111,17 @@ function AuthPage() {
                 {showForgot ? (
                   <form onSubmit={handleForgotPassword} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email-reset">Email for reset instructions</Label>
+                      <Label htmlFor="email-reset">Recovery email</Label>
                       <Input
                         id="email-reset"
                         type="email"
                         value={resetEmail}
                         onChange={(e) => setResetEmail(e.target.value)}
                         required
-                        placeholder="you@mzumbe.ac.tz"
+                        placeholder="you@gmail.com"
                       />
                       <p className="text-xs text-muted-foreground">
-                        We'll email you a secure link to set a new password.
+                        Enter the recovery email you provided at sign-up. We'll send a secure link to set a new password.
                       </p>
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
@@ -116,8 +138,15 @@ function AuthPage() {
                 ) : (
                   <form onSubmit={handleSignIn} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email-in">Email</Label>
-                      <Input id="email-in" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@mzumbe.ac.tz" />
+                      <Label htmlFor="user-in">Username</Label>
+                      <Input
+                        id="user-in"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        autoComplete="username"
+                        placeholder="ally.mhando"
+                      />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -125,12 +154,12 @@ function AuthPage() {
                         <button
                           type="button"
                           className="text-xs text-primary underline"
-                          onClick={() => { setResetEmail(email); setShowForgot(true); }}
+                          onClick={() => setShowForgot(true)}
                         >
                           Forgot password?
                         </button>
                       </div>
-                      <Input id="pass-in" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                      <Input id="pass-in" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? "Signing in…" : "Sign in"}
@@ -151,12 +180,32 @@ function AuthPage() {
                     <Input id="dept-up" value={department} onChange={(e) => setDepartment(e.target.value)} required placeholder="e.g. School of Business" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email-up">University email</Label>
-                    <Input id="email-up" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@mzumbe.ac.tz" />
+                    <Label htmlFor="user-up">Username</Label>
+                    <Input
+                      id="user-up"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                      required
+                      autoComplete="username"
+                      pattern="^[a-z][a-z0-9]*\.[a-z][a-z0-9]*$"
+                      placeholder="firstname.lastname"
+                    />
+                    <p className="text-xs text-muted-foreground">Format: <span className="font-mono">firstname.lastname</span> (letters only, e.g. <span className="font-mono">ally.mhando</span>).</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="recovery-up">Recovery email <span className="text-muted-foreground">(optional)</span></Label>
+                    <Input
+                      id="recovery-up"
+                      type="email"
+                      value={recoveryEmail}
+                      onChange={(e) => setRecoveryEmail(e.target.value)}
+                      placeholder="you@gmail.com"
+                    />
+                    <p className="text-xs text-muted-foreground">Only used to reset your password if you forget it. Leave blank to skip.</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pass-up">Password</Label>
-                    <Input id="pass-up" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+                    <Input id="pass-up" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" />
                     <p className="text-xs text-muted-foreground">At least 8 characters.</p>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
