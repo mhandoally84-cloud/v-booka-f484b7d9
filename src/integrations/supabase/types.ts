@@ -189,6 +189,8 @@ export type Database = {
           full_name: string
           id: string
           last_seen_at: string | null
+          recovery_email: string | null
+          username: string | null
         }
         Insert: {
           created_at?: string
@@ -196,6 +198,8 @@ export type Database = {
           full_name?: string
           id: string
           last_seen_at?: string | null
+          recovery_email?: string | null
+          username?: string | null
         }
         Update: {
           created_at?: string
@@ -203,6 +207,8 @@ export type Database = {
           full_name?: string
           id?: string
           last_seen_at?: string | null
+          recovery_email?: string | null
+          username?: string | null
         }
         Relationships: []
       }
