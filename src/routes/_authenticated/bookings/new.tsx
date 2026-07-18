@@ -63,10 +63,10 @@ function NewBooking() {
     return `${rangeStart}–${rangeEnd} (${activeSlotIds.length} hour${activeSlotIds.length === 1 ? "" : "s"})`;
   }, [timeMode, slots, slotId, rangeStart, rangeEnd, activeSlotIds]);
 
-  // All active venues + which are taken (with the conflicting course) for this date+slot
+  // All active venues + which are taken (with the conflicting course) for this date+slot(s)
   const { data: venueList = [] } = useQuery({
-    queryKey: ["venues-with-conflicts", date?.toISOString(), slotId],
-    enabled: !!date && !!slotId,
+    queryKey: ["venues-with-conflicts", date?.toISOString(), activeSlotIds.join(",")],
+    enabled: !!date && activeSlotIds.length > 0,
     queryFn: async () => {
       const [{ data: allVenues }, { data: taken }] = await Promise.all([
         supabase.from("venues").select("*").eq("is_active", true).eq("under_maintenance", false).order("capacity", { ascending: false }),
@@ -75,7 +75,7 @@ function NewBooking() {
           .select("venue_id, course_code, exam_title, department")
           .eq("status", "approved")
           .eq("exam_date", format(date!, "yyyy-MM-dd"))
-          .eq("time_slot_id", slotId),
+          .in("time_slot_id", activeSlotIds),
       ]);
       const takenMap = new Map((taken ?? []).map((b: any) => [b.venue_id, b]));
       return (allVenues ?? []).map((v: any) => ({ ...v, conflict: takenMap.get(v.id) ?? null }));
