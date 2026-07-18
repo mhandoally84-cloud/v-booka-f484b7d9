@@ -539,14 +539,31 @@ function ProgrammesField({
       <div className="flex gap-2">
         <Input
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val.includes(",")) {
+              const parts = val.split(",").map((s) => s.trim()).filter(Boolean);
+              const merged = [...value];
+              for (const p of parts) if (!merged.includes(p)) merged.push(p);
+              onChange(merged);
+              setDraft("");
+            } else {
+              setDraft(val);
+            }
+          }}
+          onBlur={add}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
-          placeholder="Type a programme and press Enter (e.g. BSc CS Y2)"
+          placeholder="Type a programme then press Enter or comma (e.g. BSc CS Y2)"
         />
         <Button type="button" variant="outline" onClick={add}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>
+      {value.length === 0 && (
+        <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+          Add at least one programme so students know to attend this venue.
+        </p>
+      )}
       {value.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {value.map((p) => (
