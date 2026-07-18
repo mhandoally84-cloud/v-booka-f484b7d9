@@ -123,6 +123,12 @@ function FindExam() {
                         </div>
                       </div>
                     )}
+                    {!cancelled && r.required_materials && r.required_materials.trim() && (
+                      <div className="mt-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+                        <div className="font-semibold text-primary">What to bring</div>
+                        <p className="mt-1 whitespace-pre-wrap text-foreground">{r.required_materials}</p>
+                      </div>
+                    )}
                     {cancelled && (
                       <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
                         <div className="font-medium text-destructive">Reason for cancellation</div>
