@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { MapPin, CalendarDays, Clock, Users, GraduationCap, MessageSquare, Trash2, Printer, ArrowLeft } from "lucide-react";
+import { MapPin, CalendarDays, Clock, Users, GraduationCap, MessageSquare, Trash2, Printer, ArrowLeft, Plus, X, Pencil } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
@@ -126,22 +127,13 @@ function BookingDetail() {
         </CardContent>
       </Card>
 
-      {b.programmes && b.programmes.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <GraduationCap className="h-4 w-4" /> Programmes sitting this exam
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {b.programmes.map((p: string) => (
-                <span key={p} className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">{p}</span>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <ProgrammesCard
+        bookingId={b.id}
+        programmes={(b.programmes as string[] | null) ?? []}
+        canEdit={user?.id === b.user_id || isAdmin}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["booking", id] })}
+      />
+
 
       {(b.special_requirements || b.notes) && (
         <Card>
@@ -229,3 +221,105 @@ function Info({ icon: Icon, label, value }: any) {
     </div>
   );
 }
+
+function ProgrammesCard({
+  bookingId,
+  programmes,
+  canEdit,
+  onSaved,
+}: {
+  bookingId: string;
+  programmes: string[];
+  canEdit: boolean;
+  onSaved: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [list, setList] = useState<string[]>(programmes);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  function commit() {
+    const raw = draft.trim();
+    if (!raw) return;
+    const parts = raw.split(",").map((s) => s.trim()).filter(Boolean);
+    const next = [...list];
+    for (const p of parts) if (!next.includes(p)) next.push(p);
+    setList(next);
+    setDraft("");
+  }
+
+  async function save() {
+    setBusy(true);
+    const { error } = await supabase.from("bookings").update({ programmes: list }).eq("id", bookingId);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Programmes updated");
+    setEditing(false);
+    onSaved();
+  }
+
+  if (!editing && list.length === 0 && !canEdit) return null;
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-base flex items-center gap-2">
+          <GraduationCap className="h-4 w-4" /> Programmes sitting this exam
+        </CardTitle>
+        {canEdit && !editing && (
+          <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+            <Pencil className="mr-2 h-4 w-4" /> {list.length === 0 ? "Add" : "Edit"}
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {list.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {list.map((p) => (
+              <span key={p} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                {p}
+                {editing && (
+                  <button type="button" onClick={() => setList(list.filter((x) => x !== p))} className="rounded-full p-0.5 hover:bg-primary/20" aria-label={`Remove ${p}`}>
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No programmes listed yet. Students searching this exam won't see who is sitting in this venue.</p>
+        )}
+        {editing && (
+          <>
+            <div className="flex gap-2">
+              <Input
+                value={draft}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val.includes(",")) {
+                    const parts = val.split(",").map((s) => s.trim()).filter(Boolean);
+                    const next = [...list];
+                    for (const p of parts) if (!next.includes(p)) next.push(p);
+                    setList(next);
+                    setDraft("");
+                  } else {
+                    setDraft(val);
+                  }
+                }}
+                onBlur={commit}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } }}
+                placeholder="Type a programme then press Enter or comma"
+              />
+              <Button type="button" variant="outline" onClick={commit}><Plus className="h-4 w-4" /></Button>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => { setEditing(false); setList(programmes); setDraft(""); }}>Cancel</Button>
+              <Button onClick={save} disabled={busy} className="flex-1">{busy ? "Saving…" : "Save programmes"}</Button>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+

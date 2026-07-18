@@ -113,16 +113,21 @@ function FindExam() {
                       <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {r.time_slot_label} ({r.time_slot_start?.slice(0,5)}–{r.time_slot_end?.slice(0,5)})</div>
 
                     </div>
-                    {!cancelled && r.programmes && r.programmes.length > 0 && (
+                    {!cancelled && (
                       <div className="mt-4">
                         <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Programmes sitting in this venue</div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {r.programmes.map((p) => (
-                            <span key={p} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{p}</span>
-                          ))}
-                        </div>
+                        {r.programmes && r.programmes.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {r.programmes.map((p) => (
+                              <span key={p} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{p}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">Not yet specified by the lecturer — check with your department.</p>
+                        )}
                       </div>
                     )}
+
                     {!cancelled && r.required_materials && r.required_materials.trim() && (
                       <div className="mt-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
                         <div className="font-semibold text-primary">What to bring</div>

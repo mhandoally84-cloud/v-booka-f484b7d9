@@ -35,10 +35,14 @@ function NewBooking() {
     course_code: "", exam_title: "", department: "", special_requirements: "", required_materials: "", notes: "",
   });
   const [programmesByVenue, setProgrammesByVenue] = useState<Record<string, string[]>>({});
+  const [draftByVenue, setDraftByVenue] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   function setVenueProgrammes(venueId: string, list: string[]) {
     setProgrammesByVenue((p) => ({ ...p, [venueId]: list }));
+  }
+  function setVenueDraft(venueId: string, draft: string) {
+    setDraftByVenue((d) => ({ ...d, [venueId]: draft }));
   }
 
   const { data: slots = [] } = useQuery({
@@ -142,11 +146,27 @@ function NewBooking() {
 
   async function submit() {
     if (!user || !date || activeSlotIds.length === 0 || venueIds.length === 0) return;
-    const missing = selectedVenues.filter((v: any) => !(programmesByVenue[v.id]?.length));
+    // Auto-commit any text still typed in a chip input so users aren't punished for skipping Enter.
+    const flushed: Record<string, string[]> = { ...programmesByVenue };
+    for (const v of selectedVenues as any[]) {
+      const raw = (draftByVenue[v.id] ?? "").trim();
+      if (!raw) continue;
+      const list = flushed[v.id] ? [...flushed[v.id]] : [];
+      for (const part of raw.split(",").map((s) => s.trim()).filter(Boolean)) {
+        if (!list.includes(part)) list.push(part);
+      }
+      flushed[v.id] = list;
+    }
+    if (Object.keys(draftByVenue).length) {
+      setProgrammesByVenue(flushed);
+      setDraftByVenue({});
+    }
+    const missing = selectedVenues.filter((v: any) => !(flushed[v.id]?.length));
     if (missing.length > 0) {
       toast.error(`Add at least one programme for: ${missing.map((v: any) => v.name).join(", ")}`);
       return;
     }
+
     setSaving(true);
     const examDate = format(date, "yyyy-MM-dd");
     const slotLabel = activeSlotsLabel;
@@ -193,7 +213,7 @@ function NewBooking() {
           time_slot_id: sid,
           exam_date: examDate,
           ...form,
-          programmes: programmesByVenue[v.id] ?? [],
+          programmes: flushed[v.id] ?? [],
           expected_students: seats,
           status: baseStatus,
           reviewer_comment: baseComment,
@@ -483,6 +503,8 @@ function NewBooking() {
                   venueLabel={selectedVenues.length > 1 ? `${v.name} · ${v.building}` : null}
                   value={programmesByVenue[v.id] ?? []}
                   onChange={(list) => setVenueProgrammes(v.id, list)}
+                  draft={draftByVenue[v.id] ?? ""}
+                  onDraftChange={(d) => setVenueDraft(v.id, d)}
                 />
               ))}
             </div>
@@ -516,23 +538,26 @@ function ProgrammesField({
   venueLabel,
   value,
   onChange,
+  draft,
+  onDraftChange,
 }: {
   venueLabel: string | null;
   value: string[];
   onChange: (list: string[]) => void;
+  draft: string;
+  onDraftChange: (d: string) => void;
 }) {
-  const [draft, setDraft] = useState("");
-
   function add() {
     const clean = draft.trim();
     if (!clean) return;
-    if (value.includes(clean)) { setDraft(""); return; }
+    if (value.includes(clean)) { onDraftChange(""); return; }
     onChange([...value, clean]);
-    setDraft("");
+    onDraftChange("");
   }
   function remove(p: string) {
     onChange(value.filter((x) => x !== p));
   }
+
 
   return (
     <div className="rounded-md border p-3">
@@ -551,9 +576,9 @@ function ProgrammesField({
               const merged = [...value];
               for (const p of parts) if (!merged.includes(p)) merged.push(p);
               onChange(merged);
-              setDraft("");
+              onDraftChange("");
             } else {
-              setDraft(val);
+              onDraftChange(val);
             }
           }}
           onBlur={add}
