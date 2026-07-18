@@ -146,11 +146,27 @@ function NewBooking() {
 
   async function submit() {
     if (!user || !date || activeSlotIds.length === 0 || venueIds.length === 0) return;
-    const missing = selectedVenues.filter((v: any) => !(programmesByVenue[v.id]?.length));
+    // Auto-commit any text still typed in a chip input so users aren't punished for skipping Enter.
+    const flushed: Record<string, string[]> = { ...programmesByVenue };
+    for (const v of selectedVenues as any[]) {
+      const raw = (draftByVenue[v.id] ?? "").trim();
+      if (!raw) continue;
+      const list = flushed[v.id] ? [...flushed[v.id]] : [];
+      for (const part of raw.split(",").map((s) => s.trim()).filter(Boolean)) {
+        if (!list.includes(part)) list.push(part);
+      }
+      flushed[v.id] = list;
+    }
+    if (Object.keys(draftByVenue).length) {
+      setProgrammesByVenue(flushed);
+      setDraftByVenue({});
+    }
+    const missing = selectedVenues.filter((v: any) => !(flushed[v.id]?.length));
     if (missing.length > 0) {
       toast.error(`Add at least one programme for: ${missing.map((v: any) => v.name).join(", ")}`);
       return;
     }
+
     setSaving(true);
     const examDate = format(date, "yyyy-MM-dd");
     const slotLabel = activeSlotsLabel;
