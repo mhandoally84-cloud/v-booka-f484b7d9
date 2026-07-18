@@ -538,23 +538,26 @@ function ProgrammesField({
   venueLabel,
   value,
   onChange,
+  draft,
+  onDraftChange,
 }: {
   venueLabel: string | null;
   value: string[];
   onChange: (list: string[]) => void;
+  draft: string;
+  onDraftChange: (d: string) => void;
 }) {
-  const [draft, setDraft] = useState("");
-
   function add() {
     const clean = draft.trim();
     if (!clean) return;
-    if (value.includes(clean)) { setDraft(""); return; }
+    if (value.includes(clean)) { onDraftChange(""); return; }
     onChange([...value, clean]);
-    setDraft("");
+    onDraftChange("");
   }
   function remove(p: string) {
     onChange(value.filter((x) => x !== p));
   }
+
 
   return (
     <div className="rounded-md border p-3">
