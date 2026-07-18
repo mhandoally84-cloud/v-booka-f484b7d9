@@ -254,24 +254,67 @@ function NewBooking() {
               </Popover>
             </div>
             <div className="space-y-2">
-              <Label>Time slot</Label>
-              <Select value={slotId} onValueChange={setSlotId}>
-                <SelectTrigger><SelectValue placeholder="Choose a slot" /></SelectTrigger>
-                <SelectContent>
-                  {slots.map((s: any) => (
-                    <SelectItem key={s.id} value={s.id}>{s.label} ({s.start_time.slice(0,5)}–{s.end_time.slice(0,5)})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Exam time</Label>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setTimeMode("slot")}
+                  className={cn("flex-1 rounded-md border px-3 py-2 text-sm transition",
+                    timeMode === "slot" ? "border-primary bg-primary/5 font-medium text-primary" : "border-border hover:border-primary/50")}>
+                  Preset slot (1 hour)
+                </button>
+                <button type="button" onClick={() => setTimeMode("range")}
+                  className={cn("flex-1 rounded-md border px-3 py-2 text-sm transition",
+                    timeMode === "range" ? "border-primary bg-primary/5 font-medium text-primary" : "border-border hover:border-primary/50")}>
+                  Custom range (multi-hour)
+                </button>
+              </div>
+
+              {timeMode === "slot" ? (
+                <Select value={slotId} onValueChange={setSlotId}>
+                  <SelectTrigger><SelectValue placeholder="Choose a slot" /></SelectTrigger>
+                  <SelectContent>
+                    {slots.map((s: any) => (
+                      <SelectItem key={s.id} value={s.id}>{s.label} ({s.start_time.slice(0,5)}–{s.end_time.slice(0,5)})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Start</Label>
+                      <Input type="time" step={3600} min="07:00" max="21:00" value={rangeStart}
+                        onChange={(e) => setRangeStart(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">End</Label>
+                      <Input type="time" step={3600} min="08:00" max="22:00" value={rangeEnd}
+                        onChange={(e) => setRangeEnd(e.target.value)} />
+                    </div>
+                  </div>
+                  {rangeEnd <= rangeStart ? (
+                    <p className="text-xs text-destructive">End time must be after start time.</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      This exam will occupy <span className="font-medium text-foreground">{activeSlotIds.length}</span> hourly slot(s) — the venue will be blocked for the whole range.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Expected number of students</Label>
               <Input type="number" min={1} value={expectedStudents} onChange={(e) => setExpectedStudents(Number(e.target.value))} />
             </div>
-            <Button onClick={() => { if (date && slotId && expectedStudents) setStep(2); else toast.error("Complete all fields"); }} className="w-full">Find venues</Button>
+            <Button onClick={() => {
+              if (!date) return toast.error("Pick a date");
+              if (activeSlotIds.length === 0) return toast.error(timeMode === "slot" ? "Choose a time slot" : "Enter a valid time range");
+              if (!expectedStudents) return toast.error("Enter expected students");
+              setStep(2);
+            }} className="w-full">Find venues</Button>
           </CardContent>
         </Card>
       )}
+
 
       {step === 2 && (
         <Card>
