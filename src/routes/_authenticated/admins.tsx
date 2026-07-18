@@ -37,7 +37,42 @@ function AdminsPage() {
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["all-users-admin"],
     enabled: isAdmin,
-    queryFn: () => listFn(),
+    queryFn: async () => {
+      // Prefer server fn (has auth email + last_sign_in_at). Fall back to
+      // direct profiles + user_roles query if the server fn is unavailable
+      // (e.g. deployed site missing the endpoint or bearer misconfig).
+      try {
+        const rows = await listFn();
+        if (Array.isArray(rows) && rows.length > 0) return rows;
+      } catch (e) {
+        console.warn("listAllUsers server fn failed, falling back to client query", e);
+      }
+      const [{ data: profiles }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name, department, last_seen_at, username, recovery_email"),
+        supabase.from("user_roles").select("user_id, role"),
+      ]);
+      const roleMap = new Map<string, string[]>();
+      (roles ?? []).forEach((r: any) => {
+        const list = roleMap.get(r.user_id) ?? [];
+        list.push(r.role);
+        roleMap.set(r.user_id, list);
+      });
+      const activeThreshold = Date.now() - 5 * 60 * 1000;
+      return (profiles ?? []).map((p: any) => {
+        const lastSeen = p.last_seen_at ? new Date(p.last_seen_at).getTime() : 0;
+        return {
+          id: p.id,
+          email: p.recovery_email ?? (p.username ? `${p.username}@users.vbooka.local` : null),
+          full_name: p.full_name,
+          department: p.department,
+          roles: roleMap.get(p.id) ?? [],
+          created_at: null,
+          last_sign_in_at: null,
+          last_seen_at: p.last_seen_at,
+          is_active_now: lastSeen > activeThreshold,
+        };
+      });
+    },
     refetchInterval: 60_000,
   });
 
