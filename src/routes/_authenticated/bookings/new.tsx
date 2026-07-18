@@ -142,6 +142,11 @@ function NewBooking() {
 
   async function submit() {
     if (!user || !date || activeSlotIds.length === 0 || venueIds.length === 0) return;
+    const missing = selectedVenues.filter((v: any) => !(programmesByVenue[v.id]?.length));
+    if (missing.length > 0) {
+      toast.error(`Add at least one programme for: ${missing.map((v: any) => v.name).join(", ")}`);
+      return;
+    }
     setSaving(true);
     const examDate = format(date, "yyyy-MM-dd");
     const slotLabel = activeSlotsLabel;
