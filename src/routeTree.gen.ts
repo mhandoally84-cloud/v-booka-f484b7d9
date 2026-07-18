@@ -22,9 +22,15 @@ import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedAdminsRouteImport } from './routes/_authenticated/admins'
 import { Route as AuthenticatedVenuesIndexRouteImport } from './routes/_authenticated/venues/index'
+import { Route as AuthenticatedConferenceHallsIndexRouteImport } from './routes/_authenticated/conference-halls/index'
+import { Route as AuthenticatedConferenceBookingsIndexRouteImport } from './routes/_authenticated/conference-bookings/index'
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings/index'
 import { Route as AuthenticatedVenuesNewRouteImport } from './routes/_authenticated/venues/new'
 import { Route as AuthenticatedVenuesIdRouteImport } from './routes/_authenticated/venues/$id'
+import { Route as AuthenticatedConferenceHallsNewRouteImport } from './routes/_authenticated/conference-halls/new'
+import { Route as AuthenticatedConferenceHallsIdRouteImport } from './routes/_authenticated/conference-halls/$id'
+import { Route as AuthenticatedConferenceBookingsNewRouteImport } from './routes/_authenticated/conference-bookings/new'
+import { Route as AuthenticatedConferenceBookingsIdRouteImport } from './routes/_authenticated/conference-bookings/$id'
 import { Route as AuthenticatedBookingsNewRouteImport } from './routes/_authenticated/bookings/new'
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings/$id'
 
@@ -94,6 +100,18 @@ const AuthenticatedVenuesIndexRoute =
     path: '/venues/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedConferenceHallsIndexRoute =
+  AuthenticatedConferenceHallsIndexRouteImport.update({
+    id: '/conference-halls/',
+    path: '/conference-halls/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConferenceBookingsIndexRoute =
+  AuthenticatedConferenceBookingsIndexRouteImport.update({
+    id: '/conference-bookings/',
+    path: '/conference-bookings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedBookingsIndexRoute =
   AuthenticatedBookingsIndexRouteImport.update({
     id: '/bookings/',
@@ -110,6 +128,30 @@ const AuthenticatedVenuesIdRoute = AuthenticatedVenuesIdRouteImport.update({
   path: '/venues/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConferenceHallsNewRoute =
+  AuthenticatedConferenceHallsNewRouteImport.update({
+    id: '/conference-halls/new',
+    path: '/conference-halls/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConferenceHallsIdRoute =
+  AuthenticatedConferenceHallsIdRouteImport.update({
+    id: '/conference-halls/$id',
+    path: '/conference-halls/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConferenceBookingsNewRoute =
+  AuthenticatedConferenceBookingsNewRouteImport.update({
+    id: '/conference-bookings/new',
+    path: '/conference-bookings/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConferenceBookingsIdRoute =
+  AuthenticatedConferenceBookingsIdRouteImport.update({
+    id: '/conference-bookings/$id',
+    path: '/conference-bookings/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedBookingsNewRoute =
   AuthenticatedBookingsNewRouteImport.update({
     id: '/bookings/new',
@@ -136,9 +178,15 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/conference-bookings/$id': typeof AuthenticatedConferenceBookingsIdRoute
+  '/conference-bookings/new': typeof AuthenticatedConferenceBookingsNewRoute
+  '/conference-halls/$id': typeof AuthenticatedConferenceHallsIdRoute
+  '/conference-halls/new': typeof AuthenticatedConferenceHallsNewRoute
   '/venues/$id': typeof AuthenticatedVenuesIdRoute
   '/venues/new': typeof AuthenticatedVenuesNewRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
+  '/conference-bookings/': typeof AuthenticatedConferenceBookingsIndexRoute
+  '/conference-halls/': typeof AuthenticatedConferenceHallsIndexRoute
   '/venues/': typeof AuthenticatedVenuesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -155,9 +203,15 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/conference-bookings/$id': typeof AuthenticatedConferenceBookingsIdRoute
+  '/conference-bookings/new': typeof AuthenticatedConferenceBookingsNewRoute
+  '/conference-halls/$id': typeof AuthenticatedConferenceHallsIdRoute
+  '/conference-halls/new': typeof AuthenticatedConferenceHallsNewRoute
   '/venues/$id': typeof AuthenticatedVenuesIdRoute
   '/venues/new': typeof AuthenticatedVenuesNewRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
+  '/conference-bookings': typeof AuthenticatedConferenceBookingsIndexRoute
+  '/conference-halls': typeof AuthenticatedConferenceHallsIndexRoute
   '/venues': typeof AuthenticatedVenuesIndexRoute
 }
 export interface FileRoutesById {
@@ -176,9 +230,15 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/bookings/new': typeof AuthenticatedBookingsNewRoute
+  '/_authenticated/conference-bookings/$id': typeof AuthenticatedConferenceBookingsIdRoute
+  '/_authenticated/conference-bookings/new': typeof AuthenticatedConferenceBookingsNewRoute
+  '/_authenticated/conference-halls/$id': typeof AuthenticatedConferenceHallsIdRoute
+  '/_authenticated/conference-halls/new': typeof AuthenticatedConferenceHallsNewRoute
   '/_authenticated/venues/$id': typeof AuthenticatedVenuesIdRoute
   '/_authenticated/venues/new': typeof AuthenticatedVenuesNewRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
+  '/_authenticated/conference-bookings/': typeof AuthenticatedConferenceBookingsIndexRoute
+  '/_authenticated/conference-halls/': typeof AuthenticatedConferenceHallsIndexRoute
   '/_authenticated/venues/': typeof AuthenticatedVenuesIndexRoute
 }
 export interface FileRouteTypes {
@@ -197,9 +257,15 @@ export interface FileRouteTypes {
     | '/reports'
     | '/bookings/$id'
     | '/bookings/new'
+    | '/conference-bookings/$id'
+    | '/conference-bookings/new'
+    | '/conference-halls/$id'
+    | '/conference-halls/new'
     | '/venues/$id'
     | '/venues/new'
     | '/bookings/'
+    | '/conference-bookings/'
+    | '/conference-halls/'
     | '/venues/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -216,9 +282,15 @@ export interface FileRouteTypes {
     | '/reports'
     | '/bookings/$id'
     | '/bookings/new'
+    | '/conference-bookings/$id'
+    | '/conference-bookings/new'
+    | '/conference-halls/$id'
+    | '/conference-halls/new'
     | '/venues/$id'
     | '/venues/new'
     | '/bookings'
+    | '/conference-bookings'
+    | '/conference-halls'
     | '/venues'
   id:
     | '__root__'
@@ -236,9 +308,15 @@ export interface FileRouteTypes {
     | '/_authenticated/reports'
     | '/_authenticated/bookings/$id'
     | '/_authenticated/bookings/new'
+    | '/_authenticated/conference-bookings/$id'
+    | '/_authenticated/conference-bookings/new'
+    | '/_authenticated/conference-halls/$id'
+    | '/_authenticated/conference-halls/new'
     | '/_authenticated/venues/$id'
     | '/_authenticated/venues/new'
     | '/_authenticated/bookings/'
+    | '/_authenticated/conference-bookings/'
+    | '/_authenticated/conference-halls/'
     | '/_authenticated/venues/'
   fileRoutesById: FileRoutesById
 }
@@ -344,6 +422,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVenuesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/conference-halls/': {
+      id: '/_authenticated/conference-halls/'
+      path: '/conference-halls'
+      fullPath: '/conference-halls/'
+      preLoaderRoute: typeof AuthenticatedConferenceHallsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/conference-bookings/': {
+      id: '/_authenticated/conference-bookings/'
+      path: '/conference-bookings'
+      fullPath: '/conference-bookings/'
+      preLoaderRoute: typeof AuthenticatedConferenceBookingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bookings/': {
       id: '/_authenticated/bookings/'
       path: '/bookings'
@@ -363,6 +455,34 @@ declare module '@tanstack/react-router' {
       path: '/venues/$id'
       fullPath: '/venues/$id'
       preLoaderRoute: typeof AuthenticatedVenuesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/conference-halls/new': {
+      id: '/_authenticated/conference-halls/new'
+      path: '/conference-halls/new'
+      fullPath: '/conference-halls/new'
+      preLoaderRoute: typeof AuthenticatedConferenceHallsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/conference-halls/$id': {
+      id: '/_authenticated/conference-halls/$id'
+      path: '/conference-halls/$id'
+      fullPath: '/conference-halls/$id'
+      preLoaderRoute: typeof AuthenticatedConferenceHallsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/conference-bookings/new': {
+      id: '/_authenticated/conference-bookings/new'
+      path: '/conference-bookings/new'
+      fullPath: '/conference-bookings/new'
+      preLoaderRoute: typeof AuthenticatedConferenceBookingsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/conference-bookings/$id': {
+      id: '/_authenticated/conference-bookings/$id'
+      path: '/conference-bookings/$id'
+      fullPath: '/conference-bookings/$id'
+      preLoaderRoute: typeof AuthenticatedConferenceBookingsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/bookings/new': {
@@ -391,9 +511,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedBookingsIdRoute: typeof AuthenticatedBookingsIdRoute
   AuthenticatedBookingsNewRoute: typeof AuthenticatedBookingsNewRoute
+  AuthenticatedConferenceBookingsIdRoute: typeof AuthenticatedConferenceBookingsIdRoute
+  AuthenticatedConferenceBookingsNewRoute: typeof AuthenticatedConferenceBookingsNewRoute
+  AuthenticatedConferenceHallsIdRoute: typeof AuthenticatedConferenceHallsIdRoute
+  AuthenticatedConferenceHallsNewRoute: typeof AuthenticatedConferenceHallsNewRoute
   AuthenticatedVenuesIdRoute: typeof AuthenticatedVenuesIdRoute
   AuthenticatedVenuesNewRoute: typeof AuthenticatedVenuesNewRoute
   AuthenticatedBookingsIndexRoute: typeof AuthenticatedBookingsIndexRoute
+  AuthenticatedConferenceBookingsIndexRoute: typeof AuthenticatedConferenceBookingsIndexRoute
+  AuthenticatedConferenceHallsIndexRoute: typeof AuthenticatedConferenceHallsIndexRoute
   AuthenticatedVenuesIndexRoute: typeof AuthenticatedVenuesIndexRoute
 }
 
@@ -406,9 +532,19 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedBookingsIdRoute: AuthenticatedBookingsIdRoute,
   AuthenticatedBookingsNewRoute: AuthenticatedBookingsNewRoute,
+  AuthenticatedConferenceBookingsIdRoute:
+    AuthenticatedConferenceBookingsIdRoute,
+  AuthenticatedConferenceBookingsNewRoute:
+    AuthenticatedConferenceBookingsNewRoute,
+  AuthenticatedConferenceHallsIdRoute: AuthenticatedConferenceHallsIdRoute,
+  AuthenticatedConferenceHallsNewRoute: AuthenticatedConferenceHallsNewRoute,
   AuthenticatedVenuesIdRoute: AuthenticatedVenuesIdRoute,
   AuthenticatedVenuesNewRoute: AuthenticatedVenuesNewRoute,
   AuthenticatedBookingsIndexRoute: AuthenticatedBookingsIndexRoute,
+  AuthenticatedConferenceBookingsIndexRoute:
+    AuthenticatedConferenceBookingsIndexRoute,
+  AuthenticatedConferenceHallsIndexRoute:
+    AuthenticatedConferenceHallsIndexRoute,
   AuthenticatedVenuesIndexRoute: AuthenticatedVenuesIndexRoute,
 }
 
