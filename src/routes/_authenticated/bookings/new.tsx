@@ -213,7 +213,7 @@ function NewBooking() {
           time_slot_id: sid,
           exam_date: examDate,
           ...form,
-          programmes: programmesByVenue[v.id] ?? [],
+          programmes: flushed[v.id] ?? [],
           expected_students: seats,
           status: baseStatus,
           reviewer_comment: baseComment,
