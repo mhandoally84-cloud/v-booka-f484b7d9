@@ -84,6 +84,7 @@ export type Database = {
           id: string
           notes: string | null
           programmes: string[]
+          required_materials: string | null
           reviewed_at: string | null
           reviewer_comment: string | null
           reviewer_id: string | null
@@ -106,6 +107,7 @@ export type Database = {
           id?: string
           notes?: string | null
           programmes?: string[]
+          required_materials?: string | null
           reviewed_at?: string | null
           reviewer_comment?: string | null
           reviewer_id?: string | null
@@ -128,6 +130,7 @@ export type Database = {
           id?: string
           notes?: string | null
           programmes?: string[]
+          required_materials?: string | null
           reviewed_at?: string | null
           reviewer_comment?: string | null
           reviewer_id?: string | null
@@ -305,6 +308,7 @@ export type Database = {
           exam_title: string | null
           id: string | null
           programmes: string[] | null
+          required_materials: string | null
           status: Database["public"]["Enums"]["booking_status"] | null
           time_slot_end: string | null
           time_slot_label: string | null

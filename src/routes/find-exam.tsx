@@ -25,6 +25,7 @@ interface Result {
   cancellation_reason: string | null;
   cancelled_at: string | null;
   programmes: string[] | null;
+  required_materials: string | null;
   venue_name: string | null;
   venue_building: string | null;
   time_slot_label: string | null;
@@ -43,7 +44,7 @@ function FindExam() {
     setLoading(true);
     const { data } = await (supabase as any)
       .from("public_exam_search")
-      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, programmes, venue_name, venue_building, time_slot_label, time_slot_start, time_slot_end")
+      .select("id, course_code, exam_title, exam_date, department, status, cancellation_reason, cancelled_at, programmes, required_materials, venue_name, venue_building, time_slot_label, time_slot_start, time_slot_end")
       .ilike("course_code", `%${term.trim()}%`)
       .order("exam_date", { ascending: true });
     setResults((data as Result[] | null) ?? []);
@@ -120,6 +121,12 @@ function FindExam() {
                             <span key={p} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{p}</span>
                           ))}
                         </div>
+                      </div>
+                    )}
+                    {!cancelled && r.required_materials && r.required_materials.trim() && (
+                      <div className="mt-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+                        <div className="font-semibold text-primary">What to bring</div>
+                        <p className="mt-1 whitespace-pre-wrap text-foreground">{r.required_materials}</p>
                       </div>
                     )}
                     {cancelled && (

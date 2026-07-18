@@ -29,7 +29,7 @@ function NewBooking() {
   const [expectedStudents, setExpectedStudents] = useState<number>(50);
   const [venueIds, setVenueIds] = useState<string[]>([]);
   const [form, setForm] = useState({
-    course_code: "", exam_title: "", department: "", special_requirements: "", notes: "",
+    course_code: "", exam_title: "", department: "", special_requirements: "", required_materials: "", notes: "",
   });
   // Programmes sitting the exam, keyed by venue id (e.g. ["BSc Computer Science", "BBA Year 2"])
   const [programmesByVenue, setProgrammesByVenue] = useState<Record<string, string[]>>({});
@@ -409,7 +409,12 @@ function NewBooking() {
               ))}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="sr">Special requirements (optional)</Label>
+              <Label htmlFor="rm">Required materials for students</Label>
+              <p className="text-xs text-muted-foreground">Shown to students when they search this exam. e.g. Student ID, scientific calculator, blue/black pen, drawing set.</p>
+              <Textarea id="rm" value={form.required_materials} onChange={(e) => setForm({...form, required_materials: e.target.value})} placeholder="e.g. Student ID card, scientific calculator, 2 blue pens" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sr">Special requirements for the venue (optional)</Label>
               <Textarea id="sr" value={form.special_requirements} onChange={(e) => setForm({...form, special_requirements: e.target.value})} placeholder="e.g. Extra projector, wheelchair access" />
             </div>
             <div className="space-y-2">
