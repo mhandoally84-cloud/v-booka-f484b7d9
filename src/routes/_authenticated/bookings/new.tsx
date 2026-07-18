@@ -91,7 +91,7 @@ function NewBooking() {
 
   const { data: alternatives = [] } = useQuery({
     queryKey: ["alternative-slots", date?.toISOString(), slotId, expectedStudents],
-    enabled: !!date && !!slotId && needsAlternatives,
+    enabled: !!date && timeMode === "slot" && !!slotId && needsAlternatives,
     queryFn: async () => {
       // Look at same day + next 3 days across all slots; return slots whose free capacity ≥ expectedStudents
       const days = [0, 1, 2, 3].map((d) => addDays(date!, d));
