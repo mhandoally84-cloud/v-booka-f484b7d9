@@ -25,13 +25,15 @@ function NewBooking() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [date, setDate] = useState<Date | undefined>();
+  const [timeMode, setTimeMode] = useState<"slot" | "range">("slot");
   const [slotId, setSlotId] = useState<string>("");
+  const [rangeStart, setRangeStart] = useState<string>("09:00");
+  const [rangeEnd, setRangeEnd] = useState<string>("12:00");
   const [expectedStudents, setExpectedStudents] = useState<number>(50);
   const [venueIds, setVenueIds] = useState<string[]>([]);
   const [form, setForm] = useState({
     course_code: "", exam_title: "", department: "", special_requirements: "", required_materials: "", notes: "",
   });
-  // Programmes sitting the exam, keyed by venue id (e.g. ["BSc Computer Science", "BBA Year 2"])
   const [programmesByVenue, setProgrammesByVenue] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
 
@@ -43,6 +45,23 @@ function NewBooking() {
     queryKey: ["time-slots"],
     queryFn: async () => (await supabase.from("time_slots").select("*").order("sort_order")).data ?? [],
   });
+
+  // Slot ids to book: single slot, or every 1-hour slot that overlaps the custom range.
+  const activeSlotIds = useMemo<string[]>(() => {
+    if (timeMode === "slot") return slotId ? [slotId] : [];
+    if (!rangeStart || !rangeEnd || rangeEnd <= rangeStart) return [];
+    return (slots as any[])
+      .filter((s) => s.start_time.slice(0, 5) < rangeEnd && s.end_time.slice(0, 5) > rangeStart)
+      .map((s) => s.id);
+  }, [timeMode, slotId, rangeStart, rangeEnd, slots]);
+
+  const activeSlotsLabel = useMemo(() => {
+    if (timeMode === "slot") {
+      const s: any = (slots as any[]).find((x) => x.id === slotId);
+      return s ? `${s.label} (${s.start_time.slice(0,5)}–${s.end_time.slice(0,5)})` : "the selected slot";
+    }
+    return `${rangeStart}–${rangeEnd} (${activeSlotIds.length} hour${activeSlotIds.length === 1 ? "" : "s"})`;
+  }, [timeMode, slots, slotId, rangeStart, rangeEnd, activeSlotIds]);
 
   // All active venues + which are taken (with the conflicting course) for this date+slot
   const { data: venueList = [] } = useQuery({
