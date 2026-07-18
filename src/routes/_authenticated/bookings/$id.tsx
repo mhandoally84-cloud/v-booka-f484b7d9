@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { MapPin, CalendarDays, Clock, Users, GraduationCap, MessageSquare, Trash2, Printer, ArrowLeft } from "lucide-react";
+import { MapPin, CalendarDays, Clock, Users, GraduationCap, MessageSquare, Trash2, Printer, ArrowLeft, Plus, X, Pencil } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
