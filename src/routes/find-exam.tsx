@@ -25,6 +25,7 @@ interface Result {
   cancellation_reason: string | null;
   cancelled_at: string | null;
   programmes: string[] | null;
+  required_materials: string | null;
   venue_name: string | null;
   venue_building: string | null;
   time_slot_label: string | null;
