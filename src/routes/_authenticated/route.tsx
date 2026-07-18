@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, useNavigate, useRouterState } 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, LayoutDashboard, CalendarDays, ClipboardList, Building2, BarChart3, Bell, LogOut, Menu, X, ShieldCheck, ScrollText } from "lucide-react";
+import { GraduationCap, LayoutDashboard, CalendarDays, ClipboardList, Building2, BarChart3, Bell, LogOut, Menu, X, ShieldCheck, ScrollText, Presentation } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -50,8 +50,10 @@ function AppLayout() {
 
   const nav = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/bookings", label: "Bookings", icon: ClipboardList },
+    { to: "/bookings", label: "Exam Bookings", icon: ClipboardList },
     { to: "/calendar", label: "Calendar", icon: CalendarDays },
+    { to: "/conference-halls", label: "Conference Halls", icon: Presentation },
+    { to: "/conference-bookings", label: "Hall Bookings", icon: ClipboardList },
     ...(isAdmin ? [
       { to: "/venues", label: "Venues", icon: Building2 },
       { to: "/reports", label: "Reports", icon: BarChart3 },
