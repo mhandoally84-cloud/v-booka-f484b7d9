@@ -134,19 +134,17 @@ function NewBooking() {
 
   function applyAlternative(alt: { date: string; slotId: string }) {
     setDate(new Date(alt.date + "T00:00:00"));
+    setTimeMode("slot");
     setSlotId(alt.slotId);
     setVenueIds([]);
     toast.success("Switched to a slot with enough seats");
   }
 
-
-
   async function submit() {
-    if (!user || !date || !slotId || venueIds.length === 0) return;
+    if (!user || !date || activeSlotIds.length === 0 || venueIds.length === 0) return;
     setSaving(true);
     const examDate = format(date, "yyyy-MM-dd");
-    const slot = slots.find((s: any) => s.id === slotId);
-    const slotLabel = slot ? `${slot.label} (${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)})` : "the selected slot";
+    const slotLabel = activeSlotsLabel;
 
     // Distribute expected students proportionally across selected venues by capacity
     const totalCap = selectedVenues.reduce((s: number, v: any) => s + v.capacity, 0);
@@ -163,45 +161,58 @@ function NewBooking() {
       const seats = Math.max(1, Math.min(v.capacity, share));
       remainingStudents -= seats;
 
-      // Conflict check per venue
-      const { data: conflict } = await supabase
+      // Conflict check per venue across ALL slots in the range
+      const { data: conflicts } = await supabase
         .from("bookings")
-        .select("id, course_code, exam_title")
+        .select("id, course_code, exam_title, time_slot_id")
         .eq("status", "approved")
         .eq("venue_id", v.id)
         .eq("exam_date", examDate)
-        .eq("time_slot_id", slotId)
-        .maybeSingle();
+        .in("time_slot_id", activeSlotIds);
 
-      let status: "approved" | "rejected" = "approved";
-      let reviewer_comment: string | null = null;
-      if (conflict) {
-        status = "rejected";
-        reviewer_comment = `Automatically rejected: ${v.name} is already booked at ${slotLabel} on ${format(date, "d MMM yyyy")} for ${conflict.course_code} — ${conflict.exam_title}.`;
+      const hasConflict = conflicts && conflicts.length > 0;
+      const baseStatus: "approved" | "rejected" = hasConflict ? "rejected" : "approved";
+      const baseComment = hasConflict
+        ? `Automatically rejected: ${v.name} is already booked at ${slotLabel} on ${format(date, "d MMM yyyy")} for ${conflicts![0].course_code} — ${conflicts![0].exam_title}.`
+        : null;
+
+      // Create one booking per slot in the range (so DB-level unique constraint keeps blocking overlaps)
+      let venueApprovedAny = false;
+      let venueRejectedAny = false;
+      let venueError: string | undefined;
+
+      for (const sid of activeSlotIds) {
+        const payload: any = {
+          user_id: user.id,
+          venue_id: v.id,
+          time_slot_id: sid,
+          exam_date: examDate,
+          ...form,
+          programmes: programmesByVenue[v.id] ?? [],
+          expected_students: seats,
+          status: baseStatus,
+          reviewer_comment: baseComment,
+          reviewed_at: new Date().toISOString(),
+        };
+
+        let { data, error } = await supabase.from("bookings").insert(payload).select("id").single();
+        if (error && error.message.includes("bookings_no_double_approved")) {
+          payload.status = "rejected";
+          payload.reviewer_comment = `Automatically rejected: ${v.name} was just booked by another user for ${slotLabel} on ${format(date, "d MMM yyyy")}.`;
+          ({ data, error } = await supabase.from("bookings").insert(payload).select("id").single());
+        }
+
+        if (error) venueError = error.message;
+        if (payload.status === "approved") venueApprovedAny = true;
+        if (payload.status === "rejected") venueRejectedAny = true;
+        if (data && !firstId) firstId = data.id;
       }
 
-      const payload: any = {
-        user_id: user.id,
-        venue_id: v.id,
-        time_slot_id: slotId,
-        exam_date: examDate,
-        ...form,
-        programmes: programmesByVenue[v.id] ?? [],
-        expected_students: seats,
-        status,
-        reviewer_comment,
-        reviewed_at: new Date().toISOString(),
-      };
-
-      let { data, error } = await supabase.from("bookings").insert(payload).select("id").single();
-      if (error && error.message.includes("bookings_no_double_approved")) {
-        payload.status = "rejected";
-        payload.reviewer_comment = `Automatically rejected: ${v.name} was just booked by another user for ${slotLabel} on ${format(date, "d MMM yyyy")}.`;
-        ({ data, error } = await supabase.from("bookings").insert(payload).select("id").single());
-      }
-
-      results.push({ venueName: v.name, status: payload.status, error: error?.message });
-      if (data && !firstId) firstId = data.id;
+      results.push({
+        venueName: v.name,
+        status: venueApprovedAny && !venueRejectedAny ? "approved" : "rejected",
+        error: venueError,
+      });
     }
 
     setSaving(false);
