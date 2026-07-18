@@ -25,13 +25,15 @@ function NewBooking() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [date, setDate] = useState<Date | undefined>();
+  const [timeMode, setTimeMode] = useState<"slot" | "range">("slot");
   const [slotId, setSlotId] = useState<string>("");
+  const [rangeStart, setRangeStart] = useState<string>("09:00");
+  const [rangeEnd, setRangeEnd] = useState<string>("12:00");
   const [expectedStudents, setExpectedStudents] = useState<number>(50);
   const [venueIds, setVenueIds] = useState<string[]>([]);
   const [form, setForm] = useState({
     course_code: "", exam_title: "", department: "", special_requirements: "", required_materials: "", notes: "",
   });
-  // Programmes sitting the exam, keyed by venue id (e.g. ["BSc Computer Science", "BBA Year 2"])
   const [programmesByVenue, setProgrammesByVenue] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
 
@@ -44,10 +46,27 @@ function NewBooking() {
     queryFn: async () => (await supabase.from("time_slots").select("*").order("sort_order")).data ?? [],
   });
 
-  // All active venues + which are taken (with the conflicting course) for this date+slot
+  // Slot ids to book: single slot, or every 1-hour slot that overlaps the custom range.
+  const activeSlotIds = useMemo<string[]>(() => {
+    if (timeMode === "slot") return slotId ? [slotId] : [];
+    if (!rangeStart || !rangeEnd || rangeEnd <= rangeStart) return [];
+    return (slots as any[])
+      .filter((s) => s.start_time.slice(0, 5) < rangeEnd && s.end_time.slice(0, 5) > rangeStart)
+      .map((s) => s.id);
+  }, [timeMode, slotId, rangeStart, rangeEnd, slots]);
+
+  const activeSlotsLabel = useMemo(() => {
+    if (timeMode === "slot") {
+      const s: any = (slots as any[]).find((x) => x.id === slotId);
+      return s ? `${s.label} (${s.start_time.slice(0,5)}–${s.end_time.slice(0,5)})` : "the selected slot";
+    }
+    return `${rangeStart}–${rangeEnd} (${activeSlotIds.length} hour${activeSlotIds.length === 1 ? "" : "s"})`;
+  }, [timeMode, slots, slotId, rangeStart, rangeEnd, activeSlotIds]);
+
+  // All active venues + which are taken (with the conflicting course) for this date+slot(s)
   const { data: venueList = [] } = useQuery({
-    queryKey: ["venues-with-conflicts", date?.toISOString(), slotId],
-    enabled: !!date && !!slotId,
+    queryKey: ["venues-with-conflicts", date?.toISOString(), activeSlotIds.join(",")],
+    enabled: !!date && activeSlotIds.length > 0,
     queryFn: async () => {
       const [{ data: allVenues }, { data: taken }] = await Promise.all([
         supabase.from("venues").select("*").eq("is_active", true).eq("under_maintenance", false).order("capacity", { ascending: false }),
@@ -56,7 +75,7 @@ function NewBooking() {
           .select("venue_id, course_code, exam_title, department")
           .eq("status", "approved")
           .eq("exam_date", format(date!, "yyyy-MM-dd"))
-          .eq("time_slot_id", slotId),
+          .in("time_slot_id", activeSlotIds),
       ]);
       const takenMap = new Map((taken ?? []).map((b: any) => [b.venue_id, b]));
       return (allVenues ?? []).map((v: any) => ({ ...v, conflict: takenMap.get(v.id) ?? null }));
@@ -72,7 +91,7 @@ function NewBooking() {
 
   const { data: alternatives = [] } = useQuery({
     queryKey: ["alternative-slots", date?.toISOString(), slotId, expectedStudents],
-    enabled: !!date && !!slotId && needsAlternatives,
+    enabled: !!date && timeMode === "slot" && !!slotId && needsAlternatives,
     queryFn: async () => {
       // Look at same day + next 3 days across all slots; return slots whose free capacity ≥ expectedStudents
       const days = [0, 1, 2, 3].map((d) => addDays(date!, d));
@@ -115,19 +134,17 @@ function NewBooking() {
 
   function applyAlternative(alt: { date: string; slotId: string }) {
     setDate(new Date(alt.date + "T00:00:00"));
+    setTimeMode("slot");
     setSlotId(alt.slotId);
     setVenueIds([]);
     toast.success("Switched to a slot with enough seats");
   }
 
-
-
   async function submit() {
-    if (!user || !date || !slotId || venueIds.length === 0) return;
+    if (!user || !date || activeSlotIds.length === 0 || venueIds.length === 0) return;
     setSaving(true);
     const examDate = format(date, "yyyy-MM-dd");
-    const slot = slots.find((s: any) => s.id === slotId);
-    const slotLabel = slot ? `${slot.label} (${slot.start_time.slice(0,5)}–${slot.end_time.slice(0,5)})` : "the selected slot";
+    const slotLabel = activeSlotsLabel;
 
     // Distribute expected students proportionally across selected venues by capacity
     const totalCap = selectedVenues.reduce((s: number, v: any) => s + v.capacity, 0);
@@ -144,45 +161,58 @@ function NewBooking() {
       const seats = Math.max(1, Math.min(v.capacity, share));
       remainingStudents -= seats;
 
-      // Conflict check per venue
-      const { data: conflict } = await supabase
+      // Conflict check per venue across ALL slots in the range
+      const { data: conflicts } = await supabase
         .from("bookings")
-        .select("id, course_code, exam_title")
+        .select("id, course_code, exam_title, time_slot_id")
         .eq("status", "approved")
         .eq("venue_id", v.id)
         .eq("exam_date", examDate)
-        .eq("time_slot_id", slotId)
-        .maybeSingle();
+        .in("time_slot_id", activeSlotIds);
 
-      let status: "approved" | "rejected" = "approved";
-      let reviewer_comment: string | null = null;
-      if (conflict) {
-        status = "rejected";
-        reviewer_comment = `Automatically rejected: ${v.name} is already booked at ${slotLabel} on ${format(date, "d MMM yyyy")} for ${conflict.course_code} — ${conflict.exam_title}.`;
+      const hasConflict = conflicts && conflicts.length > 0;
+      const baseStatus: "approved" | "rejected" = hasConflict ? "rejected" : "approved";
+      const baseComment = hasConflict
+        ? `Automatically rejected: ${v.name} is already booked at ${slotLabel} on ${format(date, "d MMM yyyy")} for ${conflicts![0].course_code} — ${conflicts![0].exam_title}.`
+        : null;
+
+      // Create one booking per slot in the range (so DB-level unique constraint keeps blocking overlaps)
+      let venueApprovedAny = false;
+      let venueRejectedAny = false;
+      let venueError: string | undefined;
+
+      for (const sid of activeSlotIds) {
+        const payload: any = {
+          user_id: user.id,
+          venue_id: v.id,
+          time_slot_id: sid,
+          exam_date: examDate,
+          ...form,
+          programmes: programmesByVenue[v.id] ?? [],
+          expected_students: seats,
+          status: baseStatus,
+          reviewer_comment: baseComment,
+          reviewed_at: new Date().toISOString(),
+        };
+
+        let { data, error } = await supabase.from("bookings").insert(payload).select("id").single();
+        if (error && error.message.includes("bookings_no_double_approved")) {
+          payload.status = "rejected";
+          payload.reviewer_comment = `Automatically rejected: ${v.name} was just booked by another user for ${slotLabel} on ${format(date, "d MMM yyyy")}.`;
+          ({ data, error } = await supabase.from("bookings").insert(payload).select("id").single());
+        }
+
+        if (error) venueError = error.message;
+        if (payload.status === "approved") venueApprovedAny = true;
+        if (payload.status === "rejected") venueRejectedAny = true;
+        if (data && !firstId) firstId = data.id;
       }
 
-      const payload: any = {
-        user_id: user.id,
-        venue_id: v.id,
-        time_slot_id: slotId,
-        exam_date: examDate,
-        ...form,
-        programmes: programmesByVenue[v.id] ?? [],
-        expected_students: seats,
-        status,
-        reviewer_comment,
-        reviewed_at: new Date().toISOString(),
-      };
-
-      let { data, error } = await supabase.from("bookings").insert(payload).select("id").single();
-      if (error && error.message.includes("bookings_no_double_approved")) {
-        payload.status = "rejected";
-        payload.reviewer_comment = `Automatically rejected: ${v.name} was just booked by another user for ${slotLabel} on ${format(date, "d MMM yyyy")}.`;
-        ({ data, error } = await supabase.from("bookings").insert(payload).select("id").single());
-      }
-
-      results.push({ venueName: v.name, status: payload.status, error: error?.message });
-      if (data && !firstId) firstId = data.id;
+      results.push({
+        venueName: v.name,
+        status: venueApprovedAny && !venueRejectedAny ? "approved" : "rejected",
+        error: venueError,
+      });
     }
 
     setSaving(false);
@@ -224,24 +254,67 @@ function NewBooking() {
               </Popover>
             </div>
             <div className="space-y-2">
-              <Label>Time slot</Label>
-              <Select value={slotId} onValueChange={setSlotId}>
-                <SelectTrigger><SelectValue placeholder="Choose a slot" /></SelectTrigger>
-                <SelectContent>
-                  {slots.map((s: any) => (
-                    <SelectItem key={s.id} value={s.id}>{s.label} ({s.start_time.slice(0,5)}–{s.end_time.slice(0,5)})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Exam time</Label>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setTimeMode("slot")}
+                  className={cn("flex-1 rounded-md border px-3 py-2 text-sm transition",
+                    timeMode === "slot" ? "border-primary bg-primary/5 font-medium text-primary" : "border-border hover:border-primary/50")}>
+                  Preset slot (1 hour)
+                </button>
+                <button type="button" onClick={() => setTimeMode("range")}
+                  className={cn("flex-1 rounded-md border px-3 py-2 text-sm transition",
+                    timeMode === "range" ? "border-primary bg-primary/5 font-medium text-primary" : "border-border hover:border-primary/50")}>
+                  Custom range (multi-hour)
+                </button>
+              </div>
+
+              {timeMode === "slot" ? (
+                <Select value={slotId} onValueChange={setSlotId}>
+                  <SelectTrigger><SelectValue placeholder="Choose a slot" /></SelectTrigger>
+                  <SelectContent>
+                    {slots.map((s: any) => (
+                      <SelectItem key={s.id} value={s.id}>{s.label} ({s.start_time.slice(0,5)}–{s.end_time.slice(0,5)})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Start</Label>
+                      <Input type="time" step={3600} min="07:00" max="21:00" value={rangeStart}
+                        onChange={(e) => setRangeStart(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">End</Label>
+                      <Input type="time" step={3600} min="08:00" max="22:00" value={rangeEnd}
+                        onChange={(e) => setRangeEnd(e.target.value)} />
+                    </div>
+                  </div>
+                  {rangeEnd <= rangeStart ? (
+                    <p className="text-xs text-destructive">End time must be after start time.</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      This exam will occupy <span className="font-medium text-foreground">{activeSlotIds.length}</span> hourly slot(s) — the venue will be blocked for the whole range.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Expected number of students</Label>
               <Input type="number" min={1} value={expectedStudents} onChange={(e) => setExpectedStudents(Number(e.target.value))} />
             </div>
-            <Button onClick={() => { if (date && slotId && expectedStudents) setStep(2); else toast.error("Complete all fields"); }} className="w-full">Find venues</Button>
+            <Button onClick={() => {
+              if (!date) return toast.error("Pick a date");
+              if (activeSlotIds.length === 0) return toast.error(timeMode === "slot" ? "Choose a time slot" : "Enter a valid time range");
+              if (!expectedStudents) return toast.error("Enter expected students");
+              setStep(2);
+            }} className="w-full">Find venues</Button>
           </CardContent>
         </Card>
       )}
+
 
       {step === 2 && (
         <Card>
