@@ -48,6 +48,11 @@ function Landing() {
                     Find my exam
                   </Button>
                 </Link>
+                <Link to="/find-hall">
+                  <Button size="lg" variant="outline" className="border-gold/50 bg-transparent text-primary-foreground hover:bg-primary-foreground/10">
+                    Find a hall booking
+                  </Button>
+                </Link>
               </div>
             </div>
 
