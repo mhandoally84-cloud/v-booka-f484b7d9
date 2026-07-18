@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as FindHallRouteImport } from './routes/find-hall'
 import { Route as FindExamRouteImport } from './routes/find-exam'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -42,6 +43,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FindHallRoute = FindHallRouteImport.update({
+  id: '/find-hall',
+  path: '/find-hall',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FindExamRoute = FindExamRouteImport.update({
@@ -168,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/find-exam': typeof FindExamRoute
+  '/find-hall': typeof FindHallRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admins': typeof AuthenticatedAdminsRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/find-exam': typeof FindExamRoute
+  '/find-hall': typeof FindHallRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admins': typeof AuthenticatedAdminsRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/find-exam': typeof FindExamRoute
+  '/find-hall': typeof FindHallRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admins': typeof AuthenticatedAdminsRoute
@@ -247,6 +256,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/find-exam'
+    | '/find-hall'
     | '/reset-password'
     | '/sitemap.xml'
     | '/admins'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/find-exam'
+    | '/find-hall'
     | '/reset-password'
     | '/sitemap.xml'
     | '/admins'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/find-exam'
+    | '/find-hall'
     | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/admins'
@@ -325,6 +337,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   FindExamRoute: typeof FindExamRoute
+  FindHallRoute: typeof FindHallRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
@@ -343,6 +356,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/find-hall': {
+      id: '/find-hall'
+      path: '/find-hall'
+      fullPath: '/find-hall'
+      preLoaderRoute: typeof FindHallRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/find-exam': {
@@ -556,6 +576,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   FindExamRoute: FindExamRoute,
+  FindHallRoute: FindHallRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
