@@ -503,6 +503,8 @@ function NewBooking() {
                   venueLabel={selectedVenues.length > 1 ? `${v.name} · ${v.building}` : null}
                   value={programmesByVenue[v.id] ?? []}
                   onChange={(list) => setVenueProgrammes(v.id, list)}
+                  draft={draftByVenue[v.id] ?? ""}
+                  onDraftChange={(d) => setVenueDraft(v.id, d)}
                 />
               ))}
             </div>
