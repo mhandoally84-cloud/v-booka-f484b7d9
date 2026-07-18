@@ -576,9 +576,9 @@ function ProgrammesField({
               const merged = [...value];
               for (const p of parts) if (!merged.includes(p)) merged.push(p);
               onChange(merged);
-              setDraft("");
+              onDraftChange("");
             } else {
-              setDraft(val);
+              onDraftChange(val);
             }
           }}
           onBlur={add}
