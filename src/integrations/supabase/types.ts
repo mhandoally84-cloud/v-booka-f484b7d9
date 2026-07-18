@@ -158,6 +158,122 @@ export type Database = {
           },
         ]
       }
+      conference_bookings: {
+        Row: {
+          activity_title: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          end_at: string
+          hall_id: string
+          id: string
+          other_requirements: string | null
+          participants: number
+          purpose: string | null
+          refreshments: string | null
+          reviewed_at: string | null
+          reviewer_comment: string | null
+          reviewer_id: string | null
+          start_at: string
+          status: Database["public"]["Enums"]["conference_booking_status"]
+          tech_materials: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_title: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          end_at: string
+          hall_id: string
+          id?: string
+          other_requirements?: string | null
+          participants: number
+          purpose?: string | null
+          refreshments?: string | null
+          reviewed_at?: string | null
+          reviewer_comment?: string | null
+          reviewer_id?: string | null
+          start_at: string
+          status?: Database["public"]["Enums"]["conference_booking_status"]
+          tech_materials?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_title?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          end_at?: string
+          hall_id?: string
+          id?: string
+          other_requirements?: string | null
+          participants?: number
+          purpose?: string | null
+          refreshments?: string | null
+          reviewed_at?: string | null
+          reviewer_comment?: string | null
+          reviewer_id?: string | null
+          start_at?: string
+          status?: Database["public"]["Enums"]["conference_booking_status"]
+          tech_materials?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conference_bookings_hall_id_fkey"
+            columns: ["hall_id"]
+            isOneToOne: false
+            referencedRelation: "conference_halls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conference_halls: {
+        Row: {
+          capacity: number
+          created_at: string
+          description: string | null
+          facilities: string[]
+          id: string
+          is_active: boolean
+          location: string
+          name: string
+          photo_url: string | null
+          under_maintenance: boolean
+          updated_at: string
+        }
+        Insert: {
+          capacity: number
+          created_at?: string
+          description?: string | null
+          facilities?: string[]
+          id?: string
+          is_active?: boolean
+          location: string
+          name: string
+          photo_url?: string | null
+          under_maintenance?: boolean
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          facilities?: string[]
+          id?: string
+          is_active?: boolean
+          location?: string
+          name?: string
+          photo_url?: string | null
+          under_maintenance?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -331,6 +447,11 @@ export type Database = {
     Enums: {
       app_role: "admin" | "lecturer" | "dept_head"
       booking_status: "pending" | "approved" | "rejected" | "cancelled"
+      conference_booking_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "cancelled"
       venue_type: "lecture_hall" | "computer_lab" | "exam_hall"
     }
     CompositeTypes: {
@@ -461,6 +582,12 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "lecturer", "dept_head"],
       booking_status: ["pending", "approved", "rejected", "cancelled"],
+      conference_booking_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled",
+      ],
       venue_type: ["lecture_hall", "computer_lab", "exam_hall"],
     },
   },
