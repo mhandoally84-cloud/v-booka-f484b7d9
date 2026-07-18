@@ -434,6 +434,30 @@ export type Database = {
         }
         Relationships: []
       }
+      public_hall_search: {
+        Row: {
+          activity_title: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          end_at: string | null
+          hall_capacity: number | null
+          hall_location: string | null
+          hall_name: string | null
+          id: string | null
+          organiser_department: string | null
+          organiser_name: string | null
+          other_requirements: string | null
+          participants: number | null
+          purpose: string | null
+          refreshments: string | null
+          start_at: string | null
+          status:
+            | Database["public"]["Enums"]["conference_booking_status"]
+            | null
+          tech_materials: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
