@@ -29,7 +29,7 @@ function NewBooking() {
   const [expectedStudents, setExpectedStudents] = useState<number>(50);
   const [venueIds, setVenueIds] = useState<string[]>([]);
   const [form, setForm] = useState({
-    course_code: "", exam_title: "", department: "", special_requirements: "", notes: "",
+    course_code: "", exam_title: "", department: "", special_requirements: "", required_materials: "", notes: "",
   });
   // Programmes sitting the exam, keyed by venue id (e.g. ["BSc Computer Science", "BBA Year 2"])
   const [programmesByVenue, setProgrammesByVenue] = useState<Record<string, string[]>>({});
