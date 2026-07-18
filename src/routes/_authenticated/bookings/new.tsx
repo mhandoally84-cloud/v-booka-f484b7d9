@@ -35,10 +35,14 @@ function NewBooking() {
     course_code: "", exam_title: "", department: "", special_requirements: "", required_materials: "", notes: "",
   });
   const [programmesByVenue, setProgrammesByVenue] = useState<Record<string, string[]>>({});
+  const [draftByVenue, setDraftByVenue] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   function setVenueProgrammes(venueId: string, list: string[]) {
     setProgrammesByVenue((p) => ({ ...p, [venueId]: list }));
+  }
+  function setVenueDraft(venueId: string, draft: string) {
+    setDraftByVenue((d) => ({ ...d, [venueId]: draft }));
   }
 
   const { data: slots = [] } = useQuery({
