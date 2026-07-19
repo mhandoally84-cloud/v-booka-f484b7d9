@@ -11,12 +11,39 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { MapPin, CalendarDays, Clock, Users, GraduationCap, MessageSquare, Trash2, Printer, ArrowLeft, Plus, X, Pencil, Download, Share2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { downloadBookingPdf, shareBookingPdf } from "@/lib/booking-pdf";
+import { downloadBookingPdf, shareBookingPdf, type BookingPdfData } from "@/lib/booking-pdf";
 
 
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
   component: BookingDetail,
 });
+
+async function buildPdfPayload(b: any): Promise<BookingPdfData> {
+  // Fetch all sibling bookings that share exam identity so multi-venue exams show every venue.
+  const { data: siblings } = await supabase
+    .from("bookings")
+    .select("id, expected_students, programmes, venues(name, building, capacity)")
+    .eq("course_code", b.course_code)
+    .eq("exam_title", b.exam_title)
+    .eq("exam_date", b.exam_date)
+    .eq("time_slot_id", b.time_slot_id)
+    .eq("user_id", b.user_id)
+    .eq("status", "approved");
+
+  const rows = (siblings && siblings.length > 0) ? siblings : [b];
+  const venues = rows.map((r: any) => ({
+    name: r.venues?.name, building: r.venues?.building, capacity: r.venues?.capacity,
+    expected_students: r.expected_students, programmes: (r.programmes as string[] | null) ?? [],
+  }));
+  const totalStudents = rows.reduce((s: number, r: any) => s + (r.expected_students ?? 0), 0);
+
+  return {
+    course_code: b.course_code, exam_title: b.exam_title, department: b.department,
+    exam_date: b.exam_date, expected_students: totalStudents,
+    special_requirements: b.special_requirements, required_materials: b.required_materials,
+    notes: b.notes, venues, time_slot: b.time_slots, lecturer: b.profile?.full_name,
+  };
+}
 
 async function notify(userId: string, message: string, link: string) {
   await supabase.from("notifications").insert({ user_id: userId, message, link });
