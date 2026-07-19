@@ -108,12 +108,35 @@ function BookingDetail() {
           <h1 className="text-2xl font-bold">{b.course_code} — {b.exam_title}</h1>
           <p className="text-muted-foreground">{b.department}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           <StatusBadge status={b.status} />
           {b.status === "approved" && (
-            <Button size="sm" variant="outline" onClick={() => window.print()} className="print:hidden">
-              <Printer className="mr-2 h-4 w-4" /> Print
-            </Button>
+            <>
+              <Button size="sm" variant="outline" onClick={() => downloadBookingPdf({
+                course_code: b.course_code, exam_title: b.exam_title, department: b.department,
+                exam_date: b.exam_date, expected_students: b.expected_students,
+                special_requirements: b.special_requirements, required_materials: b.required_materials,
+                notes: b.notes, programmes: b.programmes as string[] | null,
+                venue: b.venues, time_slot: b.time_slots, lecturer: b.profile?.full_name,
+              })} className="print:hidden">
+                <Download className="mr-2 h-4 w-4" /> PDF
+              </Button>
+              <Button size="sm" variant="outline" onClick={async () => {
+                const shared = await shareBookingPdf({
+                  course_code: b.course_code, exam_title: b.exam_title, department: b.department,
+                  exam_date: b.exam_date, expected_students: b.expected_students,
+                  special_requirements: b.special_requirements, required_materials: b.required_materials,
+                  notes: b.notes, programmes: b.programmes as string[] | null,
+                  venue: b.venues, time_slot: b.time_slots, lecturer: b.profile?.full_name,
+                });
+                if (!shared) toast.info("Sharing not supported here — the PDF has been downloaded instead.", { duration: 4000 });
+              }} className="print:hidden">
+                <Share2 className="mr-2 h-4 w-4" /> Share
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => window.print()} className="print:hidden">
+                <Printer className="mr-2 h-4 w-4" /> Print
+              </Button>
+            </>
           )}
         </div>
       </div>
