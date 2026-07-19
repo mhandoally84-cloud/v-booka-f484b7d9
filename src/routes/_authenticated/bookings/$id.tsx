@@ -112,23 +112,11 @@ function BookingDetail() {
           <StatusBadge status={b.status} />
           {b.status === "approved" && (
             <>
-              <Button size="sm" variant="outline" onClick={() => downloadBookingPdf({
-                course_code: b.course_code, exam_title: b.exam_title, department: b.department,
-                exam_date: b.exam_date, expected_students: b.expected_students,
-                special_requirements: b.special_requirements, required_materials: b.required_materials,
-                notes: b.notes, programmes: b.programmes as string[] | null,
-                venue: b.venues, time_slot: b.time_slots, lecturer: b.profile?.full_name,
-              })} className="print:hidden">
+              <Button size="sm" variant="outline" onClick={async () => downloadBookingPdf(await buildPdfPayload(b))} className="print:hidden">
                 <Download className="mr-2 h-4 w-4" /> PDF
               </Button>
               <Button size="sm" variant="outline" onClick={async () => {
-                const shared = await shareBookingPdf({
-                  course_code: b.course_code, exam_title: b.exam_title, department: b.department,
-                  exam_date: b.exam_date, expected_students: b.expected_students,
-                  special_requirements: b.special_requirements, required_materials: b.required_materials,
-                  notes: b.notes, programmes: b.programmes as string[] | null,
-                  venue: b.venues, time_slot: b.time_slots, lecturer: b.profile?.full_name,
-                });
+                const shared = await shareBookingPdf(await buildPdfPayload(b));
                 if (!shared) toast.info("Sharing not supported here — the PDF has been downloaded instead.", { duration: 4000 });
               }} className="print:hidden">
                 <Share2 className="mr-2 h-4 w-4" /> Share
