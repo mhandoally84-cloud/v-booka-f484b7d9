@@ -26,9 +26,11 @@ function BookingsList() {
     queryKey: ["bookings-list", isAdmin, user?.id, tab],
     enabled: !!user,
     queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
       let query = supabase
         .from("bookings")
         .select("id, course_code, exam_title, department, exam_date, status, expected_students, venues(name, building), time_slots(label)")
+        .gte("exam_date", today)
         .order("exam_date", { ascending: false });
       if (!isAdmin) query = query.eq("user_id", user!.id);
       if (tab !== "all") query = query.eq("status", tab as any);
