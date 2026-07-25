@@ -111,12 +111,12 @@ function FindHall() {
                           )}
                         </div>
                         {cancelled ? (
-                          <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">Cancelled</span>
+                          <span className="rounded-full bg-destructive/20 px-3 py-1 text-xs font-semibold text-destructive">Cancelled</span>
                         ) : (
-                          <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">Confirmed</span>
+                          <span className="rounded-full bg-success/20 px-3 py-1 text-xs font-semibold text-success">Confirmed</span>
                         )}
                       </div>
-                      <div className={"mt-4 grid gap-3 sm:grid-cols-2 text-sm " + (cancelled ? "opacity-60 line-through" : "")}>
+                      <div className={"mt-4 grid gap-3 sm:grid-cols-2 text-sm " + (cancelled ? "text-muted-foreground line-through" : "")}>
                         <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> {r.hall_name} <span className="text-muted-foreground">· {r.hall_location}</span></div>
                         <div className="flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> {r.participants} / {r.hall_capacity} seats</div>
                         <div className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" /> {format(new Date(r.start_at), "EEE, d MMM yyyy")}</div>
