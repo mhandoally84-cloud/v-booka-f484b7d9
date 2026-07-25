@@ -157,10 +157,5 @@
   .print\:hidden { display: none !important; }
 }
 
-@media print {
-  @page { margin: 1.5cm; }
-  body { background: white !important; color: black !important; }
-  .print\:hidden { display: none !important; }
-}
 
 
