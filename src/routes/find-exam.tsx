@@ -102,9 +102,9 @@ function FindExam() {
                         <div className="text-sm text-muted-foreground">{r.department}</div>
                       </div>
                       {cancelled ? (
-                        <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">Cancelled</span>
+                        <span className="rounded-full bg-destructive/20 px-3 py-1 text-xs font-semibold text-destructive">Cancelled</span>
                       ) : (
-                        <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">Confirmed</span>
+                        <span className="rounded-full bg-success/20 px-3 py-1 text-xs font-semibold text-success">Confirmed</span>
                       )}
                     </div>
                     <div className={"mt-4 grid gap-3 sm:grid-cols-3 text-sm " + (cancelled ? "text-muted-foreground line-through" : "")}>
