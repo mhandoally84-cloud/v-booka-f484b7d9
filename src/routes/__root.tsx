@@ -131,8 +131,6 @@ function RootComponent() {
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-
   return (
     <>
       <SplashScreen />
