@@ -1,21 +1,13 @@
 import { useEffect, useState } from "react";
 import { GraduationCap } from "lucide-react";
 
-const SEEN_KEY = "vbooka-splash-seen";
-
 export function SplashScreen() {
-  const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(true);
+  const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // Show once per tab session so it doesn't nag on every navigation
-    if (sessionStorage.getItem(SEEN_KEY)) return;
-    sessionStorage.setItem(SEEN_KEY, "1");
-    setMounted(true);
-    // next tick to trigger enter transition
-    requestAnimationFrame(() => setVisible(true));
     const exitTimer = setTimeout(() => setExiting(true), 3000);
     const removeTimer = setTimeout(() => setMounted(false), 3700);
     return () => {
@@ -23,6 +15,9 @@ export function SplashScreen() {
       clearTimeout(removeTimer);
     };
   }, []);
+
+  // keep for API compatibility
+  void setVisible;
 
   if (!mounted) return null;
 
