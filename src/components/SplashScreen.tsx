@@ -84,7 +84,7 @@ export function SplashScreen() {
         </h1>
 
         <p
-          className={`mt-3 max-w-xs text-sm font-medium text-white/80 transition-all delay-500 duration-700 ease-out sm:text-base ${
+          className={`mt-3 max-w-xs text-sm font-semibold text-white transition-all delay-500 duration-700 ease-out sm:text-base ${
             visible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
           }`}
         >

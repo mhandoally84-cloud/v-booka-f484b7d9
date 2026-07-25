@@ -165,7 +165,7 @@ function StatCard({ icon: Icon, label, value, tone, href }: any) {
             <div className="text-3xl font-bold">{value}</div>
             <div className="text-sm text-muted-foreground">{label}</div>
           </div>
-          <TrendingUp className="ml-auto h-4 w-4 text-muted-foreground/50" />
+          <TrendingUp className="ml-auto h-4 w-4 text-muted-foreground" />
         </CardContent>
       </Card>
     </Link>
