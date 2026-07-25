@@ -139,15 +139,28 @@
   * {
     border-color: var(--color-border);
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: var(--color-foreground);
+  }
+  p {
+    color: var(--color-foreground);
+  }
+  .text-muted-foreground {
+    color: var(--color-muted-foreground);
   }
 }
 
