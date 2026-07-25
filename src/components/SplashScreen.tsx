@@ -107,7 +107,7 @@ export function SplashScreen() {
         </div>
 
         <p
-          className={`mt-6 text-[11px] uppercase tracking-[0.3em] text-white/50 transition-opacity delay-[900ms] duration-500 ${
+          className={`mt-6 text-[11px] uppercase tracking-[0.3em] text-white/80 transition-opacity delay-[900ms] duration-500 ${
             visible ? "opacity-100" : "opacity-0"
           }`}
         >
