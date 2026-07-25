@@ -11,7 +11,7 @@ export function BrandHeader({ children }: { children?: React.ReactNode }) {
           </div>
           <div className="leading-tight">
             <div className="text-sm font-semibold uppercase tracking-wider text-gold">Mzumbe University</div>
-            <div className="text-xs text-sidebar-foreground/70">Exam Venue Booking</div>
+            <div className="text-xs font-medium text-sidebar-foreground">Exam Venue Booking</div>
           </div>
         </Link>
         <div className="flex items-center gap-2">{children}</div>

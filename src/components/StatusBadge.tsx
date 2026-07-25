@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 
 const styles: Record<string, string> = {
-  pending: "bg-warning/15 text-warning-foreground border-warning/40",
-  approved: "bg-success/15 text-success border-success/40",
-  rejected: "bg-destructive/15 text-destructive border-destructive/40",
+  pending: "bg-warning/25 text-warning-foreground border-warning/60",
+  approved: "bg-success/20 text-success border-success/60",
+  rejected: "bg-destructive/20 text-destructive border-destructive/60",
   cancelled: "bg-muted text-muted-foreground border-border",
 };
 

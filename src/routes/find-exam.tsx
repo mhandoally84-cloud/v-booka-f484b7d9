@@ -107,7 +107,7 @@ function FindExam() {
                         <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">Confirmed</span>
                       )}
                     </div>
-                    <div className={"mt-4 grid gap-3 sm:grid-cols-3 text-sm " + (cancelled ? "opacity-60 line-through" : "")}>
+                    <div className={"mt-4 grid gap-3 sm:grid-cols-3 text-sm " + (cancelled ? "text-muted-foreground line-through" : "")}>
                       <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> {r.venue_name} <span className="text-muted-foreground">· {r.venue_building}</span></div>
                       <div className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" /> {format(new Date(r.exam_date), "EEE, d MMM yyyy")}</div>
                       <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> {r.time_slot_label} ({r.time_slot_start?.slice(0,5)}–{r.time_slot_end?.slice(0,5)})</div>
