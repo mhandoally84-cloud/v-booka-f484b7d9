@@ -4,7 +4,6 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -132,15 +131,11 @@ function RootComponent() {
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-
   return (
     <>
       <SplashScreen />
       <QueryClientProvider client={queryClient}>
-        <div key={pathname} className="page-transition">
-          <Outlet />
-        </div>
+        <Outlet />
         <Toaster richColors position="top-right" />
       </QueryClientProvider>
     </>
