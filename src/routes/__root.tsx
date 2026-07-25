@@ -138,9 +138,7 @@ function RootComponent() {
     <>
       <SplashScreen />
       <QueryClientProvider client={queryClient}>
-        <div key={pathname} className="page-transition">
-          <Outlet />
-        </div>
+        <Outlet />
         <Toaster richColors position="top-right" />
       </QueryClientProvider>
     </>

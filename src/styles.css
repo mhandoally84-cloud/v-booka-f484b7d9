@@ -151,54 +151,10 @@
   }
 }
 
-/* ---------- Global motion & interactions ---------- */
-@keyframes vb-page-in {
-  0% { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes vb-fade-up {
-  0% { opacity: 0; transform: translateY(12px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes vb-scale-in {
-  0% { opacity: 0; transform: scale(0.96); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-.page-transition {
-  animation: vb-page-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  will-change: opacity, transform;
-}
-.animate-fade-up { animation: vb-fade-up 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.animate-scale-in { animation: vb-scale-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-
-/* Smoother defaults on interactive chrome */
-a, button, [role="button"], .card, [data-slot="card"] {
-  transition: background-color 200ms ease, color 200ms ease,
-    border-color 200ms ease, box-shadow 220ms ease,
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
-}
-a:hover, button:not(:disabled):hover, [role="button"]:not([aria-disabled="true"]):hover {
-  transform: translateY(-1px);
-}
-a:active, button:not(:disabled):active, [role="button"]:not([aria-disabled="true"]):active {
-  transform: translateY(0) scale(0.98);
-}
-
-/* Soft lift for cards on hover */
-[data-slot="card"]:hover {
-  box-shadow: 0 10px 30px -18px color-mix(in oklab, var(--primary) 45%, transparent);
-}
-
-/* Smooth scroll & respect user preferences */
-html { scroll-behavior: smooth; }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
+@media print {
+  @page { margin: 1.5cm; }
+  body { background: white !important; color: black !important; }
+  .print\:hidden { display: none !important; }
 }
 
 @media print {
