@@ -427,16 +427,16 @@ function NewBooking() {
                       {takenVenues.map((v: any) => (
                         <div
                           key={v.id}
-                          className="flex w-full items-center justify-between rounded-lg border border-dashed border-destructive/30 bg-destructive/5 p-4 opacity-80"
+                          className="flex w-full items-center justify-between rounded-lg border border-dashed border-destructive/40 bg-destructive/5 p-4"
                         >
                           <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-destructive/10 text-destructive">
                               <Building2 className="h-5 w-5" />
                             </div>
                             <div>
-                              <div className="font-semibold text-muted-foreground line-through">{v.name}</div>
-                              <div className="text-sm text-destructive">
-                                Taken by <span className="font-medium">{v.conflict.course_code} — {v.conflict.exam_title}</span>
+                              <div className="font-semibold text-destructive line-through">{v.name}</div>
+                              <div className="text-sm text-foreground">
+                                Taken by <span className="font-medium text-destructive">{v.conflict.course_code} — {v.conflict.exam_title}</span>
                                 {v.conflict.department && <span className="text-muted-foreground"> ({v.conflict.department})</span>}
                               </div>
                             </div>

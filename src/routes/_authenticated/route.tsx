@@ -84,7 +84,7 @@ function AppLayout() {
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gold text-gold-foreground"><GraduationCap className="h-5 w-5" /></div>
             <div>
               <div className="text-sm font-semibold uppercase tracking-wide text-gold">Mzumbe</div>
-              <div className="text-[10px] text-sidebar-foreground/70">Exam Booking</div>
+              <div className="text-[10px] font-medium text-sidebar-foreground">Exam Booking</div>
             </div>
           </Link>
           <button className="lg:hidden min-h-11 min-w-11" onClick={() => setOpen(false)} aria-label="Close menu"><X className="h-5 w-5" /></button>
@@ -99,7 +99,7 @@ function AppLayout() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "flex min-h-11 items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+                  active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
                 )}
               >
                 <span className="flex items-center gap-3"><item.icon className="h-4 w-4" /> {item.label}</span>
