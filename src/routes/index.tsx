@@ -27,29 +27,29 @@ function Landing() {
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs font-medium text-gold">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-gold/50 bg-gold/15 px-3 py-1 text-xs font-semibold text-gold">
                 <ShieldCheck className="h-3.5 w-3.5" /> Mzumbe University · Exams Office
               </div>
               <h1 className="text-4xl font-bold leading-tight md:text-5xl">
                 Book exam venues in <span className="text-gold">under a minute</span>.
               </h1>
-              <p className="mt-4 max-w-lg text-base text-primary-foreground/80 md:text-lg">
+              <p className="mt-4 max-w-lg text-base text-primary-foreground md:text-lg">
                 A simple way for lecturers to reserve halls and labs, and for the Exams Office
                 to approve, schedule, and prevent double-bookings.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/auth">
-                  <Button size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90">
+                  <Button size="lg" className="bg-gold font-semibold text-gold-foreground hover:bg-gold/90">
                     <CalendarCheck2 className="mr-2 h-5 w-5" /> Book a venue
                   </Button>
                 </Link>
                 <Link to="/find-exam">
-                  <Button size="lg" variant="outline" className="border-gold/50 bg-transparent text-primary-foreground hover:bg-primary-foreground/10">
+                  <Button size="lg" variant="outline" className="border-gold/70 bg-primary-foreground/10 font-semibold text-primary-foreground hover:bg-primary-foreground/20">
                     Find my exam
                   </Button>
                 </Link>
                 <Link to="/find-hall">
-                  <Button size="lg" variant="outline" className="border-gold/50 bg-transparent text-primary-foreground hover:bg-primary-foreground/10">
+                  <Button size="lg" variant="outline" className="border-gold/70 bg-primary-foreground/10 font-semibold text-primary-foreground hover:bg-primary-foreground/20">
                     Find a hall booking
                   </Button>
                 </Link>
