@@ -84,13 +84,14 @@ export const linkLegacyAccount = createServerFn({ method: "POST" })
       .eq("user_id", newId);
     const have = new Set((newRoles ?? []).map((r: any) => r.role));
     const toAdd = (legacyRoles ?? [])
-      .map((r: any) => r.role)
-      .filter((r: string) => !have.has(r))
-      .map((role: string) => ({ user_id: newId, role }));
+      .map((r: any) => r.role as "admin" | "dept_head" | "lecturer")
+      .filter((r) => !have.has(r))
+      .map((role) => ({ user_id: newId, role }));
     if (toAdd.length) {
       const { error: roleErr } = await supabaseAdmin.from("user_roles").insert(toAdd);
       if (roleErr) throw new Error(roleErr.message);
     }
+
 
     // Merge profile: fill blanks on the target
     const { data: newProfile } = await supabaseAdmin
