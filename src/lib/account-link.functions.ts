@@ -62,16 +62,16 @@ export const linkLegacyAccount = createServerFn({ method: "POST" })
     const newId = target.id;
 
     // Reassign FK data from legacyId -> newId
-    const reassigns: Array<Promise<any>> = [
-      supabaseAdmin.from("bookings").update({ user_id: newId }).eq("user_id", legacyId),
-      supabaseAdmin.from("bookings").update({ reviewer_id: newId }).eq("reviewer_id", legacyId),
-      supabaseAdmin.from("conference_bookings").update({ user_id: newId }).eq("user_id", legacyId),
-      supabaseAdmin.from("conference_bookings").update({ reviewer_id: newId }).eq("reviewer_id", legacyId),
-      supabaseAdmin.from("notifications").update({ user_id: newId }).eq("user_id", legacyId),
-      supabaseAdmin.from("audit_logs").update({ actor_id: newId }).eq("actor_id", legacyId),
-    ];
-    const results = await Promise.all(reassigns);
-    for (const r of results) if (r.error) throw new Error(r.error.message);
+    const reassigns = await Promise.all([
+      supabaseAdmin.from("bookings").update({ user_id: newId }).eq("user_id", legacyId).then((r) => r),
+      supabaseAdmin.from("bookings").update({ reviewer_id: newId }).eq("reviewer_id", legacyId).then((r) => r),
+      supabaseAdmin.from("conference_bookings").update({ user_id: newId }).eq("user_id", legacyId).then((r) => r),
+      supabaseAdmin.from("conference_bookings").update({ reviewer_id: newId }).eq("reviewer_id", legacyId).then((r) => r),
+      supabaseAdmin.from("notifications").update({ user_id: newId }).eq("user_id", legacyId).then((r) => r),
+      supabaseAdmin.from("audit_logs").update({ actor_id: newId }).eq("actor_id", legacyId).then((r) => r),
+    ]);
+    for (const r of reassigns) if (r.error) throw new Error(r.error.message);
+
 
     // Merge roles: add any legacy roles missing on the new account
     const { data: legacyRoles } = await supabaseAdmin
