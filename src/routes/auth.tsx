@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { linkLegacyAccount } from "@/lib/account-link.functions";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,15 +53,46 @@ function AuthPage() {
     const u = username.trim().toLowerCase();
     if (!USERNAME_RE.test(u)) return toast.error("Username must look like firstname.lastname");
     setLoading(true);
-    const primary = await supabase.auth.signInWithPassword({ email: usernameToEmail(u), password });
-    const legacy = primary.error
-      ? await supabase.auth.signInWithPassword({ email: usernameToLegacyEmail(u), password })
-      : primary;
-    setLoading(false);
-    if (legacy.error) return toast.error("Invalid username or password");
-    toast.success("Welcome back!");
+    const newEmail = usernameToEmail(u);
+    const primary = await supabase.auth.signInWithPassword({ email: newEmail, password });
+    if (!primary.error) {
+      setLoading(false);
+      toast.success("Welcome back!");
+      navigate({ to: "/dashboard" });
+      return;
+    }
+    const legacy = await supabase.auth.signInWithPassword({
+      email: usernameToLegacyEmail(u),
+      password,
+    });
+    if (legacy.error) {
+      setLoading(false);
+      return toast.error("Invalid username or password");
+    }
+    // Legacy sign-in succeeded — link/merge into the username account.
+    try {
+      const result = await linkLegacyAccount({ data: { password } });
+      if (result.linked && result.mode === "merged") {
+        // Session was tied to the deleted legacy user; sign into the merged account.
+        await supabase.auth.signOut();
+        const relogin = await supabase.auth.signInWithPassword({ email: result.newEmail, password });
+        setLoading(false);
+        if (relogin.error) {
+          toast.error("Accounts merged — please sign in again.");
+          return;
+        }
+        toast.success("Accounts merged. Welcome back!");
+      } else {
+        setLoading(false);
+        toast.success("Account updated. Welcome back!");
+      }
+    } catch (err: any) {
+      setLoading(false);
+      toast.error(err?.message ?? "Signed in, but account linking failed.");
+    }
     navigate({ to: "/dashboard" });
   }
+
 
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
