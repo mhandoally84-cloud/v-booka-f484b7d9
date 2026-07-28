@@ -99,7 +99,11 @@ export const linkLegacyAccount = createServerFn({ method: "POST" })
       .select("full_name, department, recovery_email")
       .eq("id", newId)
       .maybeSingle();
-    const patch: Record<string, any> = {};
+    const patch: {
+      full_name?: string;
+      department?: string | null;
+      recovery_email?: string | null;
+    } = {};
     if (!newProfile?.full_name && legacyProfile?.full_name) patch.full_name = legacyProfile.full_name;
     if (!newProfile?.department && legacyProfile?.department) patch.department = legacyProfile.department;
     if (!newProfile?.recovery_email && legacyProfile?.recovery_email)
@@ -107,6 +111,7 @@ export const linkLegacyAccount = createServerFn({ method: "POST" })
     if (Object.keys(patch).length) {
       await supabaseAdmin.from("profiles").update(patch).eq("id", newId);
     }
+
 
     // Sync password on the target to what the user just successfully used
     const { error: pwErr } = await supabaseAdmin.auth.admin.updateUserById(newId, {
