@@ -10,12 +10,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
+  head: () => ({
+    meta: [
+      { title: "V-Booka Sign In" },
+      {
+        name: "description",
+        content: "Sign in to V-Booka to manage Mzumbe exam venue and conference hall bookings.",
+      },
+      { property: "og:title", content: "V-Booka Sign In" },
+      {
+        property: "og:description",
+        content: "Access Mzumbe booking tools for lecturers, admins, and coordinators.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AuthPage,
 });
 
 const USERNAME_RE = /^[a-z][a-z0-9]*\.[a-z][a-z0-9]*$/;
 const USERNAME_DOMAIN = "users.vbooka.local";
+const LEGACY_EMAIL_DOMAIN = "mzumbe.ac.tz";
 const usernameToEmail = (u: string) => `${u.trim().toLowerCase()}@${USERNAME_DOMAIN}`;
+const usernameToLegacyEmail = (u: string) => `${u.trim().toLowerCase()}@${LEGACY_EMAIL_DOMAIN}`;
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -33,9 +51,12 @@ function AuthPage() {
     const u = username.trim().toLowerCase();
     if (!USERNAME_RE.test(u)) return toast.error("Username must look like firstname.lastname");
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: usernameToEmail(u), password });
+    const primary = await supabase.auth.signInWithPassword({ email: usernameToEmail(u), password });
+    const legacy = primary.error
+      ? await supabase.auth.signInWithPassword({ email: usernameToLegacyEmail(u), password })
+      : primary;
     setLoading(false);
-    if (error) return toast.error("Invalid username or password");
+    if (legacy.error) return toast.error("Invalid username or password");
     toast.success("Welcome back!");
     navigate({ to: "/dashboard" });
   }
